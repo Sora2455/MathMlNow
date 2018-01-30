@@ -1,0 +1,12 @@
+{
+  "name": "math-ml-now",
+  "version": "0.0.0",
+  "description": "MathMlNow",
+  "main": "app.js",
+  "author": {
+    "name": "boree"
+  },
+  "devDependencies": {
+    "@types/node": "^6.0.87"
+  }
+}
