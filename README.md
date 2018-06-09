@@ -12,7 +12,7 @@ To see an example of this technique in action, visit [this example page](https:/
 
 * * *
 
-# Getting started
+## Getting started
 
 MathMLNow provides a function in the file `./app.js`.
 
@@ -46,7 +46,7 @@ MathMLNow("\\int_0^{\\pi/6}\\sec\\left(y\\right)\\operatorname dy=\\ln\\left(\\s
 
 * * *
 
-# Documentation
+## Documentation
 
 `MathMLNow` takes two paramaters - a string representing the maths equation to render (in the same formats [MathJax-node](https://github.com/mathjax/MathJax-node) accepts, as that is what is used internally), and a `MathMLNowOptions` object.
 
