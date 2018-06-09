@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2024
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "MathMlNow", "MathMlNow\MathMlNow.njsproj", "{D733CA4E-97FF-4DF2-B874-5EFA2622E0C1}"
+Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "MathMlNow", "MathMlNow.njsproj", "{D733CA4E-97FF-4DF2-B874-5EFA2622E0C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
