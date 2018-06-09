@@ -6,11 +6,9 @@ In browsers that support it, MathML allows for the display of maths equations in
 
 But because most browsers do _not_ support MathML, fallback content is necessary. Traditionally, this has been done with the JavaScript library [MathJax](https://www.mathjax.org/), but MathJax suffers from the same problem any JavaScript library has - it is a large download that slows down the users browsing; and doesn't work when JavaScript is turned off (or more likely, broken by another script on the page).
 
-MathMLNow is a server-side rendering technique that produces a series of HTML tags that show MathML if available, gracefully degrading to an SVG image, and then to a PNG image if even SVG is not supported.
+MathMLNow is a Node package that produces a series of HTML tags that show MathML if available, gracefully degrading to an SVG image, and then to a PNG image if even SVG is not supported.
 
 To see an example of this technique in action, visit [this example page](https://cdn.rawgit.com/Sora2455/MathMlNow/d814dde5/example.html).
-
-* * *
 
 ## Getting started
 
@@ -43,8 +41,6 @@ MathMLNow("\\int_0^{\\pi/6}\\sec\\left(y\\right)\\operatorname dy=\\ln\\left(\\s
     verticalMarginPercent: 20
 }).then((result) => console.log("Integral of the secant function:\n" + result));
 ```
-
-* * *
 
 ## Documentation
 
