@@ -1,12 +1,23 @@
 {
   "name": "math-ml-now",
   "version": "0.0.0",
-  "description": "MathMlNow",
+  "description": "",
   "main": "app.js",
   "author": {
-    "name": "boree"
+    "name": "Sora Neku"
+  },
+  "dependencies": {
+    "convert-svg-to-png": "^0.3.3",
+    "html": "^1.0.0",
+    "html-minifier": "^3.5.8",
+    "mathjax-node-sre": "^3.0.0",
+    "string-hash": "^1.1.3",
+    "xmlserializer": "^0.6.1"
   },
   "devDependencies": {
-    "@types/node": "^6.0.87"
+    "@types/node": "^6.0.87",
+    "@types/jsdom": "^11.0.4",
+    "@types/html-minifier": "3.5.1",
+    "@types/string-hash": "1.1.1"
   }
 }
