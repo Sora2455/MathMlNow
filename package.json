@@ -1,10 +1,28 @@
 {
   "name": "math-ml-now",
-  "version": "0.0.0",
-  "description": "",
+  "version": "1.0.0",
+  "description": "A Node.JS package that will render maths equations server-side in a way that will allow them to be displayed as best as possible in all browsers.",
   "main": "app.js",
   "author": {
     "name": "Sora Neku"
+  },
+  "homepage": "https://github.com/Sora2455/MathMlNow/",
+  "keywords": [
+    "math",
+    "svg",
+    "mathml",
+    "tex",
+    "latex",
+    "asciimath",
+    "server-side-rendering"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Sora2455/MathMlNow.git"
+  },
+  "scripts": {
+    "test": "echo 'No tests here!'"
   },
   "dependencies": {
     "convert-svg-to-png": "^0.3.3",
