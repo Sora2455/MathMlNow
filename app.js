@@ -37,8 +37,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var mjAPI = require("mathjax-node-sre");
 var convert_svg_to_png_1 = require("convert-svg-to-png");
-var html_1 = require("html");
-var html_minifier_1 = require("html-minifier");
 var hash = require("string-hash");
 var fs = require("fs");
 var xmlserializer = require("xmlserializer");
@@ -59,22 +57,17 @@ function getStringRepresentation(element) {
     var result = "";
     result += xmlserializer.serializeToString(element);
     //The serializer thinks that <title> is an xhtml element, not an svg one - not true
-    result = result.replace(" xmlns=\"http://www.w3.org/1999/xhtml\"", "");
-    //Minify by default
-    return html_minifier_1.minify(result, {
-        collapseWhitespace: true,
-        collapseInlineTagWhitespace: true
-    });
+    return result.replace(" xmlns=\"http://www.w3.org/1999/xhtml\"", "");
 }
 /**
  * Generate a promise that resolves to a string of HTML that will display the inputted
- * maths equation in a way understood my all browsers
+ * maths equation in a way understood by all browsers
  * @param mathString The string representation of the maths equation you wish to display
  * @param options The MathMLNowOptions object that will control the behaviour of the rendered equation
  */
 function MathMLNow(mathString, options) {
     return __awaiter(this, void 0, void 0, function () {
-        var data, mml, svg, height, verticalMargin, heightWithMargin, width, horizontalMargin, widthWithMargin, mstyle_1, mathChildNodes, parentSvg, switchElem, foreignObject, resultString, pngFilePath, svgBuffer, png, img, cssString, errors;
+        var data, mml, svg, height, verticalMargin, heightWithMargin, width, horizontalMargin, widthWithMargin, mstyle_1, mathChildNodes, parentSvg, switchElem, foreignObject, resultString, pngFilePath, svgBuffer, png, svga_1, parentSvgChildNodes, img, errors;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -87,10 +80,6 @@ function MathMLNow(mathString, options) {
                     //Default horizontal whitespace margin is 0%
                     if (!options.horizontalMarginPercent)
                         options.horizontalMarginPercent = 0;
-                    if (!options.svgClass)
-                        options.svgClass = "svg";
-                    if (!options.svgNotSupportedClass)
-                        options.svgNotSupportedClass = "svgFallback";
                     if (options.supportOutdatedBrowsers && !options.imageFolder) {
                         //The same browsers that don't support SVG also don't support data uris
                         throw new Error("In order to support outdated browsers, the PNGs must be saved externally" +
@@ -151,12 +140,8 @@ function MathMLNow(mathString, options) {
                     parentSvg.appendChild(switchElem);
                     parentSvg.setAttribute("height", heightWithMargin.toString());
                     parentSvg.setAttribute("width", widthWithMargin.toString());
-                    if (options.supportOutdatedBrowsers) {
-                        parentSvg.classList.add(options.svgClass);
-                    }
                     resultString = void 0;
                     parentSvg.setAttribute("aria-label", data.speakText);
-                    resultString = getStringRepresentation(parentSvg);
                     if (!options.supportOutdatedBrowsers) return [3 /*break*/, 4];
                     pngFilePath = options.imageFolder + (options.fileName || hash(mathString).toString()) + ".png";
                     svgBuffer = Buffer.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
@@ -173,30 +158,27 @@ function MathMLNow(mathString, options) {
                         })];
                 case 3:
                     _a.sent();
-                    img = mml.ownerDocument.createElement("img");
+                    svga_1 = mml.ownerDocument.createElementNS("http://www.w3.org/2000/svg", "a");
+                    svga_1.classList.add("mmln-f");
+                    parentSvgChildNodes = Array.from(parentSvg.childNodes);
+                    parentSvgChildNodes.forEach(function (value) {
+                        svga_1.appendChild(value);
+                    });
+                    parentSvg.appendChild(svga_1);
+                    img = mml.ownerDocument.createElementNS("http://www.w3.org/2000/svg", "image");
                     img.setAttribute("src", pngFilePath);
                     img.setAttribute("height", svg.getAttribute("height"));
                     img.setAttribute("width", svg.getAttribute("width"));
                     img.setAttribute("alt", data.speakText);
-                    img.classList.add(options.svgNotSupportedClass);
-                    resultString += getStringRepresentation(img);
+                    img.setAttribute("xlink:href", "");
+                    parentSvg.appendChild(img);
                     _a.label = 4;
                 case 4:
-                    cssString = "";
-                    if (options.supportOutdatedBrowsers) {
-                        cssString = "Place this in your CSS:\n." + options.svgNotSupportedClass + " {\n\tdisplay: none;\n}\n@media \\0screen\\,screen\\9 {\n\t." + options.svgClass + " {\n\t\tdisplay: none;\n\t}\n\t." + options.svgNotSupportedClass + " {\n\t\tdisplay: block;\n\t}\n}\n\n";
-                    }
-                    if (options.minify) {
-                        return [2 /*return*/, cssString + "Place this on your page where you want the equation to appear:\n" + resultString];
-                    }
-                    else {
-                        return [2 /*return*/, cssString + "Place this on your page where you want the equation to appear:\n" + html_1.prettyPrint(resultString)];
-                    }
-                    return [3 /*break*/, 6];
+                    resultString = getStringRepresentation(parentSvg);
+                    return [2 /*return*/, resultString];
                 case 5:
                     errors = data.errors;
                     throw new Error(errors.join("\n"));
-                case 6: return [2 /*return*/];
             }
         });
     });

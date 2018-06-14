@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en-au">
 <head>
 	<meta charset="UTF-8">
@@ -73,17 +73,14 @@
 				filter: invert(80%);
 			}
 		}
-		.svgFallback {
-			display: none;
-		}
-		@media \0screen\,screen\9 {
-			.svg {
-				display: none;
-			}
-			.svgFallback {
-				display: block;
-			}
-		}
+        .mmln-f {
+            display: block;
+            position: absolute;
+            left: -100%;
+            height: 0;
+            width: 0;
+            overflow: hidden;
+        }
 	</style>
 </head>
 <body>
@@ -193,13 +190,13 @@
 						</ul>
 					</td>
 					<td>
-						<img src="https://raw.githubusercontent.com/Sora2455/MathMlNow/master/img/2591654204.png" height="68" width="227" alt="x=\frac{-b\pm\sqrt{b^2-4ac}}{2a}">
+						<img src="https://raw.githubusercontent.com/Sora2455/MathMlNow/master/img/2591654204.png?v=2" height="68" width="227" alt="x=\frac{-b\pm\sqrt{b^2-4ac}}{2a}">
 					</td>
 					<td>
-						<img src="https://raw.githubusercontent.com/Sora2455/MathMlNow/master/img/3040592419.png" height="53" width="195" alt="e^{i\pi}+1=0">
+						<img src="https://raw.githubusercontent.com/Sora2455/MathMlNow/master/img/3040592419.png?v=2" height="53" width="195" alt="e^{i\pi}+1=0">
 					</td>
 					<td>
-						<img src="https://raw.githubusercontent.com/Sora2455/MathMlNow/master/img/3602555756.png" height="63" width="260" alt="\int_0^{\pi/6}\sec\left(y\right)\operatorname dy=\ln\left(\sqrt3i^{64}\right)">
+						<img src="https://raw.githubusercontent.com/Sora2455/MathMlNow/master/img/3602555756.png?v=2" height="63" width="260" alt="\int_0^{\pi/6}\sec\left(y\right)\operatorname dy=\ln\left(\sqrt3i^{64}\right)">
 					</td>
 				</tr>
 				</tbody>
@@ -219,9 +216,10 @@
 					<li>
 						If the browser can't process SVG tags (which browsers have been able to do since 2011), then your user is using IE8 or below, as all
 						other browsers unable to do so have all <a href="https://caniuse.com/#feat=svg-html5">long been taken out of circulation</a>.
-						In that case, CSS targeted at those IE versions will reveal a <abbr title="Portable Network Graphics">PNG</abbr> version of the fallback SVG.
-						Websites that do not intend to support such rare, outdated browsers can remove the PNG and save their visitors from having to unnecessarily
-						download an image.
+						In that case, there is an <code>&lt;image&gt;</code> tag just at the end of the SVG tag that contains a PNG 'screenshot' of that SVG.
+                        Browsers that understand SVG will ignore that tag (SVG <code>&lt;image&gt;</code> tags use the <code>xlink:href</code> attribute instead of the
+                        <code>src</code> attribute), but older browsers will mistake that <code>&lt;image&gt;</code> tag for a normal HTML <code>&lt;img&gt;</code> tag
+                        and show the image. (Thanks to <a href="https://css-tricks.com/a-complete-guide-to-svg-fallbacks/">CSS-Tricks</a> for sharing that trick.)
 					</li>
 				</ol>
 				Thus, all browsers should be able to see an image of the maths equation we are trying to show.
@@ -265,3 +263,4 @@
 	</article>
 </main>
 </body>
+</html>

@@ -1,59 +1,49 @@
-﻿interface MathMLNowOptions {
+﻿export interface MathMLNowOptions {
     /**
      * The format of the math input
      */
-    formatName: "TeX" | "inline-TeX" | "AsciiMath" | "MathML",
+    formatName: "TeX" | "inline-TeX" | "AsciiMath" | "MathML";
     /**
      * Set to true to support browsers that don't support SVG (IE8 and below)
      */
-    supportOutdatedBrowsers?: boolean,
+    supportOutdatedBrowsers?: boolean;
     /**
      * If you want to store the math as external resources
      * (for example, becuase the same formula is used more than once)
      * then include a relative file path to your image folder here (must end in a '/'!)
      */
-    imageFolder?: string,
+    imageFolder?: string;
     /**
      * The filename to save any external math files under (defaults to a hash of the math input)
      */
-    fileName?: string,
+    fileName?: string;
     /**
      * Set to true to strip whitespace from the generated HTML/SVG/MathML
      */
-    minify?: boolean,
+    minify?: boolean;
     /**
      * Use to set the effective font-size (in pixels) of the maths expression (defaults to 18)
      */
-    fontSize?: number,
+    fontSize?: number;
     /**
      * Use to set the color of the rendered equation (defaults to black). Accepts #rgb, #rrggbb or HTML color names
      */
-    fontColor?: string,
+    fontColor?: string;
     /**
      * The amount of blank space that will be left at the top and bottom of the equation to account for
      * differences between MathML and SVG - defaults to 0%
      */
-    verticalMarginPercent?: number,
+    verticalMarginPercent?: number;
     /**
      * The amount of blank space that will be left at the left and right of the equation to account for
      * differences between MathML and SVG - defaults to 0%
      */
-    horizontalMarginPercent?: number,
-    /**
-     * The class placed on the SVG element so it can be hidden if not supported - defaults to 'SVG'
-     */
-    svgClass?: string,
-    /**
-     * The class place on the IMG element so it can be shown if SVG is not supported - defaults to 'svgFallback'
-     */
-    svgNotSupportedClass?: string
+    horizontalMarginPercent?: number;
 }
 
 import * as mjAPI from "mathjax-node-sre";
 import { JSDOM } from "jsdom";
 import { convert } from "convert-svg-to-png";
-import { prettyPrint } from "html";
-import { minify } from "html-minifier";
 const hash = require("string-hash");
 import * as fs from "fs";
 import * as xmlserializer from "xmlserializer";
@@ -76,29 +66,22 @@ function getStringRepresentation(element: Element): string {
     let result = "";
     result += xmlserializer.serializeToString(element);
     //The serializer thinks that <title> is an xhtml element, not an svg one - not true
-    result = result.replace(` xmlns="http://www.w3.org/1999/xhtml"`, "");
-    //Minify by default
-    return minify(result, {
-        collapseWhitespace: true,
-        collapseInlineTagWhitespace: true
-    });
+    return result.replace(` xmlns="http://www.w3.org/1999/xhtml"`, "");
 }
 
 /**
  * Generate a promise that resolves to a string of HTML that will display the inputted
- * maths equation in a way understood my all browsers
+ * maths equation in a way understood by all browsers
  * @param mathString The string representation of the maths equation you wish to display
  * @param options The MathMLNowOptions object that will control the behaviour of the rendered equation
  */
-async function MathMLNow(mathString: string, options: MathMLNowOptions) : Promise<string> {
+export async function MathMLNow(mathString: string, options: MathMLNowOptions) : Promise<string> {
     //Default font size is 18
     if (!options.fontSize) options.fontSize = 18;
     //Default vertical whitespace margin is 0%
     if (!options.verticalMarginPercent) options.verticalMarginPercent = 0;
     //Default horizontal whitespace margin is 0%
     if (!options.horizontalMarginPercent) options.horizontalMarginPercent = 0;
-    if (!options.svgClass) options.svgClass = "svg";
-    if (!options.svgNotSupportedClass) options.svgNotSupportedClass = "svgFallback";
 
     if (options.supportOutdatedBrowsers && !options.imageFolder) {
         //The same browsers that don't support SVG also don't support data uris
@@ -117,7 +100,7 @@ async function MathMLNow(mathString: string, options: MathMLNowOptions) : Promis
     if (!data.errors) {
         const mml = data.mmlNode as DocumentFragment;
         const svg = data.svgNode as SVGSVGElement;
-        //MathJax likes to make it's content of a relative size - but this isn't valid HTML, and breaks SVG2PNG
+        //MathJax likes to make its content a relative size - but this isn't valid HTML, and breaks SVG2PNG
         //So we convert back to flat pixels
         const height = Math.ceil(Number.parseFloat(data.height) * 11 *
             options.fontSize / 18);
@@ -164,14 +147,9 @@ async function MathMLNow(mathString: string, options: MathMLNowOptions) : Promis
         parentSvg.setAttribute("height", heightWithMargin.toString());
         parentSvg.setAttribute("width", widthWithMargin.toString());
 
-        if (options.supportOutdatedBrowsers) {
-            parentSvg.classList.add(options.svgClass);
-        }
-
         let resultString: string;
 
         parentSvg.setAttribute("aria-label", data.speakText);
-        resultString = getStringRepresentation(parentSvg);
 
         if (options.supportOutdatedBrowsers) {
             //Same as above, plus:
@@ -189,46 +167,30 @@ async function MathMLNow(mathString: string, options: MathMLNowOptions) : Promis
                 if (error) throw new Error(error.message + " " + error.stack);
             });
 
-            const img = mml.ownerDocument.createElement("img");
+            //Hiding the SVG text in unsuporting browsers requires an <a> tag wrapped around it's contents
+            const svga = mml.ownerDocument.createElementNS("http://www.w3.org/2000/svg", "a");
+            svga.classList.add("mmln-f");
+            //Move the math nodes into the style node
+            const parentSvgChildNodes = Array.from(parentSvg.childNodes);
+            parentSvgChildNodes.forEach((value) => {
+                svga.appendChild(value);
+            });
+            parentSvg.appendChild(svga);
+
+            const img = mml.ownerDocument.createElementNS("http://www.w3.org/2000/svg", "image");
             img.setAttribute("src", pngFilePath);
             img.setAttribute("height", svg.getAttribute("height"));
             img.setAttribute("width", svg.getAttribute("width"));
             img.setAttribute("alt", data.speakText);
-            img.classList.add(options.svgNotSupportedClass);
-
-            resultString += getStringRepresentation(img);
+            img.setAttribute("xlink:href", "");
+            parentSvg.appendChild(img);
         }
 
-        let cssString = "";
+        resultString = getStringRepresentation(parentSvg);
 
-        if (options.supportOutdatedBrowsers) {
-            cssString = `Place this in your CSS:
-.${options.svgNotSupportedClass} {
-	display: none;
-}
-@media \\0screen\\,screen\\9 {
-	.${options.svgClass} {
-		display: none;
-	}
-	.${options.svgNotSupportedClass} {
-		display: block;
-	}
-}
-
-`
-        }
-
-        if (options.minify) {
-            return `${cssString}Place this on your page where you want the equation to appear:
-${resultString}`;
-        } else {
-            return `${cssString}Place this on your page where you want the equation to appear:
-${prettyPrint(resultString)}`;
-        }
+        return resultString;
     } else {
         const errors = data.errors as string[];
         throw new Error(errors.join("\n"));
     }
 }
-
-exports.MathMLNow = MathMLNow;

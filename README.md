@@ -42,6 +42,21 @@ MathMLNow("\\int_0^{\\pi/6}\\sec\\left(y\\right)\\operatorname dy=\\ln\\left(\\s
 }).then((result) => console.log("Integral of the secant function:\n" + result));
 ```
 
+If you wish to support browsers that do not support SVG graphics (about [2.5% of the world](https://caniuse.com/#feat=svg-html5) at the time of writing), you need to add this to your website's CSS:
+
+```CSS
+.mmln-f {
+	display: block;
+	position: absolute;
+	left: -100%;
+	height: 0;
+	width: 0;
+	overflow: hidden;
+}
+```
+
+(Thanks to [CSS-Tricks](https://css-tricks.com/a-complete-guide-to-svg-fallbacks/) for sharing this nugget of wisdom.)
+
 ## Documentation
 
 `MathMLNow` takes two paramaters - a string representing the maths equation to render (in the same formats [MathJax-node](https://github.com/mathjax/MathJax-node) accepts, as that is what is used internally), and a `MathMLNowOptions` object.
@@ -67,10 +82,6 @@ interface MathMLNowOptions {
      */
     fileName?: string,
     /**
-     * Set to true to strip whitespace from the generated HTML/SVG/MathML
-     */
-    minify?: boolean,
-    /**
      * Use to set the effective font-size (in pixels) of the maths expression (defaults to 18)
      */
     fontSize?: number,
@@ -87,14 +98,6 @@ interface MathMLNowOptions {
      * The amount of blank space that will be left at the left and right of the equation to account for
      * differences between MathML and SVG - defaults to 0%
      */
-    horizontalMarginPercent?: number,
-    /**
-     * The class placed on the SVG element so it can be hidden if not supported - defaults to 'SVG'
-     */
-    svgClass?: string,
-    /**
-     * The class place on the IMG element so it can be shown if SVG is not supported - defaults to 'svgFallback'
-     */
-    svgNotSupportedClass?: string
+    horizontalMarginPercent?: number
 }
 ```
