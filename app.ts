@@ -42,7 +42,6 @@
 }
 
 import * as mjAPI from "mathjax-node-sre";
-import { JSDOM } from "jsdom";
 import { convert } from "convert-svg-to-png";
 const hash = require("string-hash");
 import * as fs from "fs";

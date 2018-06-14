@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "convert-svg-to-png": "0.3.3",
-    "mathjax-node-sre": "3.0.0",
+    "mathjax-node-sre": "^3.0.0",
     "string-hash": "1.1.3",
     "xmlserializer": "0.6.1"
   },
