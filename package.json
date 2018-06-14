@@ -28,7 +28,7 @@
     "test": "echo 'No tests here!'"
   },
   "dependencies": {
-    "convert-svg-to-png": "0.3.3",
+    "convert-svg-to-png": "^0.4.0",
     "mathjax-node-sre": "^3.0.0",
     "string-hash": "1.1.3",
     "xmlserializer": "0.6.1"
