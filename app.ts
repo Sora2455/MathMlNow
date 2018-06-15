@@ -56,23 +56,12 @@ mjAPI.config({
 });
 
 /**
- * Convert a node into a minified string of HTML/SVG/MathML
- * @param element The Element we are stringifiying
- */
-function getStringRepresentation(element: Element): string {
-    let result = "";
-    result += xmlserializer.serializeToString(element);
-    //The serializer thinks that <title> is an xhtml element, not an svg one - not true
-    return result.replace(` xmlns="http://www.w3.org/1999/xhtml"`, "");
-}
-
-/**
  * Generate a promise that resolves to a string of HTML that will display the inputted
  * maths equation in a way understood by all browsers
  * @param mathString The string representation of the maths equation you wish to display
  * @param options The MathMLNowOptions object that will control the behaviour of the rendered equation
  */
-export async function MathMLNow(mathString: string, options: MathMLNowOptions) : Promise<string> {
+export function MathMLNow(mathString: string, options: MathMLNowOptions) : Promise<string> {
     //Default font size is 18
     if (!options.fontSize) options.fontSize = 18;
     //Default vertical whitespace margin is 0%
@@ -80,15 +69,13 @@ export async function MathMLNow(mathString: string, options: MathMLNowOptions) :
     //Default horizontal whitespace margin is 0%
     if (!options.horizontalMarginPercent) options.horizontalMarginPercent = 0;
 
-    const data = await mjAPI.typeset({
+    return mjAPI.typeset({
         math: mathString,
         format: options.formatName,
         mmlNode: true,
         svgNode: true,
         speakText: true
-    });
-
-    if (!data.errors) {
+    }).then(data => {
         const mml = data.mmlNode as DocumentFragment;
         const svg = data.svgNode as SVGSVGElement;
         //MathJax likes to make its content a relative size - but this isn't valid HTML, and breaks SVG2PNG
@@ -148,42 +135,42 @@ export async function MathMLNow(mathString: string, options: MathMLNowOptions) :
             const pngFilePath = options.imageFolder + (options.fileName || hash(mathString).toString()) + ".png";
 
             const svgBuffer = Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>` +
-                getStringRepresentation(svg), "utf8");
+                svg.outerHTML, "utf8");
             //For the browsers that don't support SVG, we'll render a PNG instead
-            const png = await convert(svgBuffer, {
+            return convert(svgBuffer, {
                 //Make the image three times as large to help with quality
                 scale: 3
-            });
-            await fs.writeFile(__dirname + pngFilePath, png, (error) => {
-                if (error) throw new Error(error.message + " " + error.stack);
-            });
+            }).then(png => {
+                return new Promise((resolve, reject) => {
+                    fs.writeFile(__dirname + pngFilePath, png, (error) => {
+                        if (error) reject(error);
 
-            //Hiding the SVG text in unsuporting browsers requires an <a> tag wrapped around it's contents
-            const svga = mml.ownerDocument.createElementNS("http://www.w3.org/2000/svg", "a");
-            svga.classList.add("mmln-f");
-            //Move the math nodes into the style node
-            const parentSvgChildNodes = Array.from(parentSvg.childNodes);
-            parentSvgChildNodes.forEach((value) => {
-                svga.appendChild(value);
-            });
-            parentSvg.appendChild(svga);
+                        //Hiding the SVG text in unsuporting browsers requires an <a> tag wrapped around it's contents
+                        const svga = mml.ownerDocument.createElementNS("http://www.w3.org/2000/svg", "a");
+                        svga.classList.add("mmln-f");
+                        //Move the math nodes into the style node
+                        const parentSvgChildNodes = Array.from(parentSvg.childNodes);
+                        parentSvgChildNodes.forEach((value) => {
+                            svga.appendChild(value);
+                        });
+                        parentSvg.appendChild(svga);
 
-            const img = mml.ownerDocument.createElementNS("http://www.w3.org/2000/svg", "image");
-            img.setAttribute("src", pngFilePath);
-            img.setAttribute("height", svg.getAttribute("height"));
-            img.setAttribute("width", svg.getAttribute("width"));
-            img.setAttribute("alt", data.speakText);
-            img.setAttribute("xlink:href", "");
-            parentSvg.appendChild(img);
+                        const img = mml.ownerDocument.createElementNS("http://www.w3.org/2000/svg", "image");
+                        img.setAttribute("src", pngFilePath);
+                        img.setAttribute("height", svg.getAttribute("height"));
+                        img.setAttribute("width", svg.getAttribute("width"));
+                        img.setAttribute("alt", data.speakText);
+                        img.setAttribute("xlink:href", "");
+                        parentSvg.appendChild(img);
+
+                        resolve(parentSvg.outerHTML);
+                    });
+                });
+            });
         }
 
-        resultString = getStringRepresentation(parentSvg);
-
-        return resultString;
-    } else {
-        const errors = data.errors as string[];
-        throw new Error(errors.join("\n"));
-    }
+        return parentSvg.outerHTML;
+    });
 }
 
 /**

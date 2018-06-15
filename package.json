@@ -27,12 +27,14 @@
   "scripts": {
     "test": "echo 'No tests here!'"
   },
+  "engines": {
+    "node": ">=6.0.0"
+  },
   "dependencies": {
     "convert-svg-to-png": "^0.4.0",
     "mathjax-node-sre": "^3.0.0",
-    "vinyl": "^2.1.0",
     "string-hash": "^1.1.3",
-    "xmlserializer": "^0.6.1"
+    "vinyl": "^2.1.0"
   },
   "devDependencies": {
     "@types/html-minifier": "3.5.1",

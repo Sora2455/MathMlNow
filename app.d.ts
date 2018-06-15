@@ -6,13 +6,9 @@ export interface MathMLNowOptions {
      */
     formatName: "TeX" | "inline-TeX" | "AsciiMath" | "MathML";
     /**
-     * Set to true to support browsers that don't support SVG (IE8 and below)
-     */
-    supportOutdatedBrowsers?: boolean;
-    /**
-     * If you want to store the math as external resources
-     * (for example, becuase the same formula is used more than once)
-     * then include a relative file path to your image folder here (must end in a '/'!)
+     * If you want to support browsers that can't render MathML or SVG (generally IE8 and below)
+     * then include a relative file path to your image folder here (must end in a '/'!). PNG fallbacks
+     * for the SVG files will be saved there.
      */
     imageFolder?: string;
     /**
