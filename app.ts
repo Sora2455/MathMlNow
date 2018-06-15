@@ -37,11 +37,14 @@
     horizontalMarginPercent?: number;
 }
 
+interface IConvertSvgToPng {
+    convert(input: string | Buffer, options: any): Promise<Buffer>;
+}
+
 import * as mjAPI from "mathjax-node-sre";
-import { convert } from "convert-svg-to-png";
+import convertSvgToPng from "convert-svg-to-png";
 const hash = require("string-hash");
 import * as fs from "fs";
-import * as xmlserializer from "xmlserializer";
 import stream = require("stream");
 import File = require("vinyl");
 
@@ -137,11 +140,11 @@ export function MathMLNow(mathString: string, options: MathMLNowOptions) : Promi
             const svgBuffer = Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>` +
                 svg.outerHTML, "utf8");
             //For the browsers that don't support SVG, we'll render a PNG instead
-            return convert(svgBuffer, {
+            return (convertSvgToPng as IConvertSvgToPng).convert(svgBuffer, {
                 //Make the image three times as large to help with quality
                 scale: 3
             }).then(png => {
-                return new Promise((resolve, reject) => {
+                return new Promise<string>((resolve, reject) => {
                     fs.writeFile(__dirname + pngFilePath, png, (error) => {
                         if (error) reject(error);
 

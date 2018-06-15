@@ -106,7 +106,7 @@ function MathMLNow(mathString, options) {
             var svgBuffer = Buffer.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                 svg.outerHTML, "utf8");
             //For the browsers that don't support SVG, we'll render a PNG instead
-            return convert_svg_to_png_1.convert(svgBuffer, {
+            return convert_svg_to_png_1.default.convert(svgBuffer, {
                 //Make the image three times as large to help with quality
                 scale: 3
             }).then(function (png) {
