@@ -4,13 +4,9 @@
      */
     formatName: "TeX" | "inline-TeX" | "AsciiMath" | "MathML";
     /**
-     * Set to true to support browsers that don't support SVG (IE8 and below)
-     */
-    supportOutdatedBrowsers?: boolean;
-    /**
-     * If you want to store the math as external resources
-     * (for example, becuase the same formula is used more than once)
-     * then include a relative file path to your image folder here (must end in a '/'!)
+     * If you want to support browsers that can't render MathML or SVG (generally IE8 and below)
+     * then include a relative file path to your image folder here (must end in a '/'!). PNG fallbacks
+     * for the SVG files will be saved there.
      */
     imageFolder?: string;
     /**
@@ -46,6 +42,8 @@ import { convert } from "convert-svg-to-png";
 const hash = require("string-hash");
 import * as fs from "fs";
 import * as xmlserializer from "xmlserializer";
+import stream = require("stream");
+import File = require("vinyl");
 
 mjAPI.config({
     MathJax: {
@@ -81,12 +79,6 @@ export async function MathMLNow(mathString: string, options: MathMLNowOptions) :
     if (!options.verticalMarginPercent) options.verticalMarginPercent = 0;
     //Default horizontal whitespace margin is 0%
     if (!options.horizontalMarginPercent) options.horizontalMarginPercent = 0;
-
-    if (options.supportOutdatedBrowsers && !options.imageFolder) {
-        //The same browsers that don't support SVG also don't support data uris
-        throw new Error("In order to support outdated browsers, the PNGs must be saved externally" +
-            " - please provide a path to your website's image folder.");
-    }
 
     const data = await mjAPI.typeset({
         math: mathString,
@@ -150,7 +142,7 @@ export async function MathMLNow(mathString: string, options: MathMLNowOptions) :
 
         parentSvg.setAttribute("aria-label", data.speakText);
 
-        if (options.supportOutdatedBrowsers) {
+        if (options.imageFolder) {
             //Same as above, plus:
             //For the browsers that don't support SVG, we'll render a PNG instead
             const pngFilePath = options.imageFolder + (options.fileName || hash(mathString).toString()) + ".png";
@@ -191,5 +183,113 @@ export async function MathMLNow(mathString: string, options: MathMLNowOptions) :
     } else {
         const errors = data.errors as string[];
         throw new Error(errors.join("\n"));
+    }
+}
+
+/**
+ * A Gulp-style replacer function that will rewrite large chunks of text (like a HTML page),
+ * replacing instances of $$[Math string]$$ with the corresponding MathMLNow
+ */
+export class MathMlReplacer extends stream.Transform {
+    private options: MathMLNowOptions;
+    /**
+     * A Gulp-style replacer function that will rewrite large chunks of text (like a HTML page),
+     * replacing instances of $$[Math string]$$ with the corresponding MathML
+     * @param options The MathMLNowOptions object that will control the behaviour of the rendered equation
+     */
+    constructor(options: MathMLNowOptions) {
+        super({ objectMode: true });
+        this.options = options || { formatName: "TeX" };
+        this.options.formatName = options.formatName || "TeX";
+    }
+
+    /**
+     * Like the normal JavaScript string replacer, but with an async callback function
+     * Solution taken from https://stackoverflow.com/a/33631886/7077589
+     * @param str The stream to replace
+     * @param re The regex to do matches with
+     * @param callback The async function to apply to the regex matches
+     */
+    private replaceAsync(str: string, re: RegExp | string,
+        callback: (substring: string, ...args: any[]) => Promise<string>): Promise<string> {
+        // http://es5.github.io/#x15.5.4.11
+        str = String(str);
+        const parts = [] as (Promise<string> | string)[];
+        let i = 0;
+        if (re instanceof RegExp) {
+            //Regex search function - could have many matches
+            if (re.global)
+                re.lastIndex = i;
+            let m;
+            while (m = re.exec(str)) {
+                var args = m.concat([m.index, m.input]);
+                parts.push(str.slice(i, m.index), callback.apply(null, args));
+                i = re.lastIndex;
+                if (!re.global)
+                    break; // for non-global regexes only take the first match
+                if (m[0].length == 0)
+                    re.lastIndex++;
+            }
+        } else {
+            //This is a string search function - it only has one match
+            re = String(re);
+            i = str.indexOf(re);
+            parts.push(str.slice(0, i), callback.apply(null, [re, i, str]));
+            i += re.length;
+        }
+        parts.push(str.slice(i));
+        return Promise.all(parts).then(function (strings) {
+            return strings.join("");
+        });
+    }
+
+    /**
+     * Apply MathMLNow to a vinyl file
+     * @param file The file to assign our result to
+     * @param data The string data we read from the file
+     * @param enc The file encoding the file was initially in
+     * @param callback The function to call when we are done
+     */
+    private rewriteFile(file: File, data: string, enc: string, callback: (err?: any, val?: File) => void): void {
+        this.replaceAsync(data, /\$\$([^]+?)\$\$/gm, (match, p1: string) => {
+            return MathMLNow(p1, this.options);
+        }).then(processedTemp => {
+            file.contents = new Buffer(processedTemp, enc);
+            callback(null, file);
+        }).catch(reason => {
+            //If there was a fail, pass the reason why up the chain
+            callback(reason);
+        });
+    }
+
+    /**
+     * Reads a stream into memory so that we can run Regex on it
+     * @param stream The stream to read from
+     * @param enc The encoding of the stream
+     * @param callback A callback function to run when we are done
+     */
+    private streamToString(stream: NodeJS.ReadableStream, enc: string, callback: (data: string) => void) {
+        const chunks = [] as string[];
+        stream.on('data', (chunk: Buffer | string | any) => {
+            chunks.push(chunk.toString(enc));
+        });
+        stream.on('end', () => {
+            callback(chunks.join(''));
+        });
+    }
+
+    public _transform(file: File, enc: string, callback: (err?: any, val?: File) => void): void {
+        if (file.isNull()) {
+            callback(null, file);
+        }
+        else if (file.isBuffer()) {
+            const data = file.contents.toString(enc);
+            this.rewriteFile(file, data, enc, callback);
+        }
+        else if (file.isStream()) {
+            this.streamToString(file.contents, enc, fileContents => {
+                this.rewriteFile(file, fileContents, enc, callback);
+            });
+        }
     }
 }

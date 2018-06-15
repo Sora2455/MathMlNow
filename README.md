@@ -55,6 +55,16 @@ If you wish to support browsers that do not support SVG graphics (about [2.5% of
 }
 ```
 
+If you wish to replace inline math instances in a large file (say, a HTML page), then you can pipe it as a [vinyl](https://github.com/gulpjs/vinyl) stream:
+
+```JavaScript
+	var mathMlNowReplacer = new MathMlReplacer(options);
+
+	gulp.src(['src/**/*.html'])
+	  .pipe(mathMlNowReplacer)
+	  .pipe(gulp.dest('dist'));
+```
+
 (Thanks to [CSS-Tricks](https://css-tricks.com/a-complete-guide-to-svg-fallbacks/) for sharing this nugget of wisdom.)
 
 ## Documentation
@@ -66,38 +76,34 @@ interface MathMLNowOptions {
     /**
      * The format of the math input
      */
-    formatName: "TeX" | "inline-TeX" | "AsciiMath" | "MathML",
+    formatName: "TeX" | "inline-TeX" | "AsciiMath" | "MathML";
     /**
-     * Set to true to support browsers that don't support SVG (IE8 and below)
+     * If you want to support browsers that can't render MathML or SVG (generally IE8 and below)
+     * then include a relative file path to your image folder here (must end in a '/'!). PNG fallbacks
+     * for the SVG files will be saved there.
      */
-    supportOutdatedBrowsers?: boolean,
-    /**
-     * If you want to store the math as external resources
-     * (for example, becuase the same formula is used more than once)
-     * then include a relative file path to your image folder here (must end in a '/'!)
-     */
-    imageFolder?: string,
+    imageFolder?: string;
     /**
      * The filename to save any external math files under (defaults to a hash of the math input)
      */
-    fileName?: string,
+    fileName?: string;
     /**
      * Use to set the effective font-size (in pixels) of the maths expression (defaults to 18)
      */
-    fontSize?: number,
+    fontSize?: number;
     /**
      * Use to set the color of the rendered equation (defaults to black). Accepts #rgb, #rrggbb or HTML color names
      */
-    fontColor?: string,
+    fontColor?: string;
     /**
      * The amount of blank space that will be left at the top and bottom of the equation to account for
      * differences between MathML and SVG - defaults to 0%
      */
-    verticalMarginPercent?: number,
+    verticalMarginPercent?: number;
     /**
      * The amount of blank space that will be left at the left and right of the equation to account for
      * differences between MathML and SVG - defaults to 0%
      */
-    horizontalMarginPercent?: number
+    horizontalMarginPercent?: number;
 }
 ```

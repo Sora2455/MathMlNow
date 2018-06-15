@@ -1,4 +1,14 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -40,6 +50,7 @@ var convert_svg_to_png_1 = require("convert-svg-to-png");
 var hash = require("string-hash");
 var fs = require("fs");
 var xmlserializer = require("xmlserializer");
+var stream = require("stream");
 mjAPI.config({
     MathJax: {
         // traditional MathJax configuration
@@ -184,4 +195,112 @@ function MathMLNow(mathString, options) {
     });
 }
 exports.MathMLNow = MathMLNow;
+/**
+ * A Gulp-style replacer function that will rewrite large chunks of text (like a HTML page),
+ * replacing instances of $$[Math string]$$ with the corresponding MathMLNow
+ */
+var MathMlReplacer = /** @class */ (function (_super) {
+    __extends(MathMlReplacer, _super);
+    /**
+     * A Gulp-style replacer function that will rewrite large chunks of text (like a HTML page),
+     * replacing instances of $$[Math string]$$ with the corresponding MathML
+     * @param options The MathMLNowOptions object that will control the behaviour of the rendered equation
+     */
+    function MathMlReplacer(options) {
+        var _this = _super.call(this, { objectMode: true }) || this;
+        _this.options = options || { formatName: "TeX" };
+        _this.options.formatName = options.formatName || "TeX";
+        return _this;
+    }
+    /**
+     * Like the normal JavaScript string replacer, but with an async callback function
+     * Solution taken from https://stackoverflow.com/a/33631886/7077589
+     * @param str The stream to replace
+     * @param re The regex to do matches with
+     * @param callback The async function to apply to the regex matches
+     */
+    MathMlReplacer.prototype.replaceAsync = function (str, re, callback) {
+        // http://es5.github.io/#x15.5.4.11
+        str = String(str);
+        var parts = [];
+        var i = 0;
+        if (re instanceof RegExp) {
+            //Regex search function - could have many matches
+            if (re.global)
+                re.lastIndex = i;
+            var m = void 0;
+            while (m = re.exec(str)) {
+                var args = m.concat([m.index, m.input]);
+                parts.push(str.slice(i, m.index), callback.apply(null, args));
+                i = re.lastIndex;
+                if (!re.global)
+                    break; // for non-global regexes only take the first match
+                if (m[0].length == 0)
+                    re.lastIndex++;
+            }
+        }
+        else {
+            //This is a string search function - it only has one match
+            re = String(re);
+            i = str.indexOf(re);
+            parts.push(str.slice(0, i), callback.apply(null, [re, i, str]));
+            i += re.length;
+        }
+        parts.push(str.slice(i));
+        return Promise.all(parts).then(function (strings) {
+            return strings.join("");
+        });
+    };
+    /**
+     * Apply MathMLNow to a vinyl file
+     * @param file The file to assign our result to
+     * @param data The string data we read from the file
+     * @param enc The file encoding the file was initially in
+     * @param callback The function to call when we are done
+     */
+    MathMlReplacer.prototype.rewriteFile = function (file, data, enc, callback) {
+        var _this = this;
+        this.replaceAsync(data, /\$\$([^]+?)\$\$/gm, function (match, p1) {
+            return MathMLNow(p1, _this.options);
+        }).then(function (processedTemp) {
+            file.contents = new Buffer(processedTemp, enc);
+            callback(null, file);
+        }).catch(function (reason) {
+            //If there was a fail, pass the reason why up the chain
+            callback(reason);
+        });
+    };
+    /**
+     * Reads a stream into memory so that we can run Regex on it
+     * @param stream The stream to read from
+     * @param enc The encoding of the stream
+     * @param callback A callback function to run when we are done
+     */
+    MathMlReplacer.prototype.streamToString = function (stream, enc, callback) {
+        var chunks = [];
+        stream.on('data', function (chunk) {
+            chunks.push(chunk.toString(enc));
+        });
+        stream.on('end', function () {
+            callback(chunks.join(''));
+        });
+    };
+    MathMlReplacer.prototype._transform = function (file, enc, callback) {
+        var _this = this;
+        if (file.isNull()) {
+            callback(null, file);
+        }
+        else if (file.isBuffer()) {
+            var data = file.contents.toString(enc);
+            this.rewriteFile(file, data, enc, callback);
+        }
+        else if (file.isStream()) {
+            this.streamToString(file.contents, enc, function (fileContents) {
+                _this.rewriteFile(file, fileContents, enc, callback);
+            });
+        }
+    };
+    return MathMlReplacer;
+}(stream.Transform));
+exports.MathMlReplacer = MathMlReplacer;
 //# sourceMappingURL=app.js.map
