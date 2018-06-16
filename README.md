@@ -82,9 +82,17 @@ gulp.task('mathReplace', () => {
 
 This will replace any instance of Math inbetween two "$$" strings, with font-size, vertical margin percent, horizontal margin percent, and font-color all settable in optional paramaters (in that order) provided after the math string with "||" seperators.
 
-For example, if you wanted the Euler's identity result from up above, you would place "$$e^{i\pi}+1=0||30$$" (math string = "e^{i\pi}+1=0", font-size = 30) whereever you wanted that math to appear.
+For example, if you wanted the Euler's identity result from up above, you would place
 
-The Integral of the secant function from up above would be expressed as "$$\int_0^{\pi/6}\sec\left(y\right)\operatorname dy=\ln\left(\sqrt3i^{64}\right)||16||20$$" (math string = "\int_0^{\pi/6}\sec\left(y\right)\operatorname dy=\ln\left(\sqrt3i^{64}\right)", font-size = 16, vertical margin percent = 20).
+`$$e^{i\pi}+1=0||30$$`
+
+(math string = "e^{i\pi}+1=0", font-size = 30) wherever you wanted that math to appear.
+
+The Integral of the secant function from up above would be expressed as
+
+`$$\int_0^{\pi/6}\sec\left(y\right)\operatorname dy=\ln\left(\sqrt3i^{64}\right)||16||20$$`
+
+(math string = "\int_0^{\pi/6}\sec\left(y\right)\operatorname dy=\ln\left(\sqrt3i^{64}\right)", font-size = 16, vertical margin percent = 20).
 
 ## Documentation
 
