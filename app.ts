@@ -42,7 +42,7 @@ interface IConvertSvgToPng {
 }
 
 import * as mjAPI from "mathjax-node-sre";
-import convertSvgToPng from "convert-svg-to-png";
+import * as convertSvgToPng from "convert-svg-to-png";
 const hash = require("string-hash");
 import * as fs from "fs";
 import stream = require("stream");

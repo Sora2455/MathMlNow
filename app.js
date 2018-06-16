@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var mjAPI = require("mathjax-node-sre");
-var convert_svg_to_png_1 = require("convert-svg-to-png");
+var convertSvgToPng = require("convert-svg-to-png");
 var hash = require("string-hash");
 var fs = require("fs");
 var stream = require("stream");
@@ -115,7 +115,7 @@ function MathMLNow(mathString, options) {
             var svgBuffer = Buffer.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                 svg.outerHTML, "utf8");
             //For the browsers that don't support SVG, we'll render a PNG instead
-            return convert_svg_to_png_1.default.convert(svgBuffer, {
+            return convertSvgToPng.convert(svgBuffer, {
                 //Make the image three times as large to help with quality
                 scale: 3
             }).then(function (png) {
