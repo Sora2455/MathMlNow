@@ -35,6 +35,9 @@
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
     <Content Include="example.html" />
+    <Content Include="example.pre.html">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="package.json" />
     <Content Include="README.md" />
     <Content Include="tsconfig.json" />

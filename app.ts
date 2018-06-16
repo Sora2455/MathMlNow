@@ -174,6 +174,7 @@ export function MathMLNow(mathString: string, options: MathMLNowOptions) : Promi
                         img.setAttribute("width", svg.getAttribute("width"));
                         img.setAttribute("alt", data.speakText);
                         img.setAttribute("xlink:href", "");
+                        img.classList.add("mml-i");
                         parentSvg.appendChild(img);
 
                         resolve(replaceWithHTMLEntities(parentSvg.outerHTML));

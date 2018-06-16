@@ -39,7 +39,8 @@ MathMLNow("\\int_0^{\\pi/6}\\sec\\left(y\\right)\\operatorname dy=\\ln\\left(\\s
 }).then((result) => console.log("Integral of the secant function:\n" + result));
 ```
 
-If you wish to support browsers that do not support SVG graphics (about [2.5% of the world](https://caniuse.com/#feat=svg-html5) at the time of writing), you need to add this to your website's CSS:
+If you wish to support browsers that do not support SVG graphics (about [2.5% of the world](https://caniuse.com/#feat=svg-html5) at the time of writing), you need to pass the location to your website's image folder to the imageFolder config option.
+In addition, add the following to your website's CSS:
 
 ```CSS
 .mmln-f {
@@ -49,6 +50,9 @@ If you wish to support browsers that do not support SVG graphics (about [2.5% of
 	height: 0;
 	width: 0;
 	overflow: hidden;
+}
+svg image.mml-i {
+	display: none;
 }
 ```
 
