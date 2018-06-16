@@ -25,7 +25,7 @@
     "url": "http://github.com/Sora2455/MathMlNow/issues"
   },
   "scripts": {
-    "test": "echo 'No tests here!'"
+    "test": "tape tests/*.js"
   },
   "engines": {
     "node": ">=8.0.0"
@@ -41,6 +41,7 @@
     "@types/jsdom": "11.0.4",
     "@types/node": "6.0.96",
     "@types/string-hash": "1.1.1",
-    "@types/vinyl": "^2.0.2"
+    "@types/vinyl": "^2.0.2",
+    "tape": "^4.9.1"
   }
 }

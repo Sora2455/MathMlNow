@@ -12,7 +12,7 @@ export interface MathMLNowOptions {
      */
     imageFolder?: string;
     /**
-     * The filename to save any external math files under (defaults to a hash of the math input)
+     * The filename to save any image files under (defaults to a hash of the math input)
      */
     fileName?: string;
     /**

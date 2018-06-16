@@ -21,21 +21,18 @@ The file provided is called `MathMLNow`. To generate the MathMLNow used in the e
 MathMLNow("x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}", {
     formatName: "TeX",
     minify: false,
-    supportOutdatedBrowsers: true,
     imageFolder: "/img/",
     fontSize: 18
 }).then((result) => console.log("Quadratic formula:\n" + result));
 MathMLNow("e^{i\\pi}+1=0", {
     formatName: "TeX",
     minify: false,
-    supportOutdatedBrowsers: true,
     imageFolder: "/img/",
     fontSize: 30
 }).then((result) => console.log("Euler's identity:\n" + result));
 MathMLNow("\\int_0^{\\pi/6}\\sec\\left(y\\right)\\operatorname dy=\\ln\\left(\\sqrt3i^{64}\\right)", {
     formatName: "TeX",
     minify: false,
-    supportOutdatedBrowsers: true,
     imageFolder: "/img/",
     fontSize: 16,
     verticalMarginPercent: 20
@@ -84,7 +81,7 @@ interface MathMLNowOptions {
      */
     imageFolder?: string;
     /**
-     * The filename to save any external math files under (defaults to a hash of the math input)
+     * The filename to save any image files under (defaults to a hash of the math input)
      */
     fileName?: string;
     /**

@@ -10,7 +10,7 @@
      */
     imageFolder?: string;
     /**
-     * The filename to save any external math files under (defaults to a hash of the math input)
+     * The filename to save any image files under (defaults to a hash of the math input)
      */
     fileName?: string;
     /**
@@ -57,6 +57,16 @@ mjAPI.config({
         }
     }
 });
+
+/**
+ * Replace unusual unicode characters with their HTML entities
+ * @param rawStr
+ */
+function replaceWithHTMLEntities(rawStr: string): string {
+    return rawStr.replace(/[\u00A0-\u9999]/gim, function (i) {
+        return `&#${i.charCodeAt(0)};`;
+    });
+}
 
 /**
  * Generate a promise that resolves to a string of HTML that will display the inputted
@@ -166,13 +176,13 @@ export function MathMLNow(mathString: string, options: MathMLNowOptions) : Promi
                         img.setAttribute("xlink:href", "");
                         parentSvg.appendChild(img);
 
-                        resolve(parentSvg.outerHTML);
+                        resolve(replaceWithHTMLEntities(parentSvg.outerHTML));
                     });
                 });
             });
         }
 
-        return parentSvg.outerHTML;
+        return replaceWithHTMLEntities(parentSvg.outerHTML);
     });
 }
 

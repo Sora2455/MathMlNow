@@ -25,6 +25,15 @@ mjAPI.config({
     }
 });
 /**
+ * Replace unusual unicode characters with their HTML entities
+ * @param rawStr
+ */
+function replaceWithHTMLEntities(rawStr) {
+    return rawStr.replace(/[\u00A0-\u9999]/gim, function (i) {
+        return "&#" + i.charCodeAt(0) + ";";
+    });
+}
+/**
  * Generate a promise that resolves to a string of HTML that will display the inputted
  * maths equation in a way understood by all browsers
  * @param mathString The string representation of the maths equation you wish to display
@@ -130,12 +139,12 @@ function MathMLNow(mathString, options) {
                         img.setAttribute("alt", data.speakText);
                         img.setAttribute("xlink:href", "");
                         parentSvg.appendChild(img);
-                        resolve(parentSvg.outerHTML);
+                        resolve(replaceWithHTMLEntities(parentSvg.outerHTML));
                     });
                 });
             });
         }
-        return parentSvg.outerHTML;
+        return replaceWithHTMLEntities(parentSvg.outerHTML);
     });
 }
 exports.MathMLNow = MathMLNow;
