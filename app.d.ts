@@ -16,10 +16,6 @@ export interface MathMLNowOptions {
      */
     fileName?: string;
     /**
-     * Set to true to strip whitespace from the generated HTML/SVG/MathML
-     */
-    minify?: boolean;
-    /**
      * Use to set the effective font-size (in pixels) of the maths expression (defaults to 18)
      */
     fontSize?: number;

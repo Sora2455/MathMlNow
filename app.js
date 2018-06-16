@@ -214,9 +214,41 @@ var MathMlReplacer = /** @class */ (function (_super) {
      */
     MathMlReplacer.prototype.rewriteFile = function (file, data, enc, callback) {
         var _this = this;
-        this.replaceAsync(data, /\$\$([^]+?)\$\$/gm, function (match, p1) {
-            return MathMLNow(p1, _this.options);
+        //First, replace the ones with all four properties, and then down from there
+        this.replaceAsync(data, /\$\$(.+?)\|\|(\d+)\|\|(\d+)\|\|(\d+)\|\|(\w+)\$\$/g, function (match, math, fontSize, vMargin, hMargin, fontColor) {
+            var indiviualOptions = Object.create(_this.options);
+            indiviualOptions.fontSize = Number(fontSize);
+            indiviualOptions.verticalMarginPercent = Number(vMargin);
+            indiviualOptions.horizontalMarginPercent = Number(hMargin);
+            indiviualOptions.fontColor = fontColor;
+            return MathMLNow(math, indiviualOptions);
+        }).then(function (data) {
+            return _this.replaceAsync(data, /\$\$(.+?)\|\|(\d+)\|\|(\d+)\|\|(\d+)\$\$/g, function (match, math, fontSize, vMargin, hMargin) {
+                var indiviualOptions = Object.create(_this.options);
+                indiviualOptions.fontSize = Number(fontSize);
+                indiviualOptions.verticalMarginPercent = Number(vMargin);
+                indiviualOptions.horizontalMarginPercent = Number(hMargin);
+                return MathMLNow(math, indiviualOptions);
+            });
+        }).then(function (data) {
+            return _this.replaceAsync(data, /\$\$(.+?)\|\|(\d+)\|\|(\d+)\$\$/g, function (match, math, fontSize, vMargin) {
+                var indiviualOptions = Object.create(_this.options);
+                indiviualOptions.fontSize = Number(fontSize);
+                indiviualOptions.verticalMarginPercent = Number(vMargin);
+                return MathMLNow(math, indiviualOptions);
+            });
+        }).then(function (data) {
+            return _this.replaceAsync(data, /\$\$(.+?)\|\|(\d+)\$\$/g, function (match, math, fontSize) {
+                var indiviualOptions = Object.create(_this.options);
+                indiviualOptions.fontSize = Number(fontSize);
+                return MathMLNow(math, indiviualOptions);
+            });
+        }).then(function (data) {
+            return _this.replaceAsync(data, /\$\$(.+?)\$\$/g, function (match, math) {
+                return MathMLNow(math, _this.options);
+            });
         }).then(function (processedTemp) {
+            //All done! Write to the file now!
             file.contents = new Buffer(processedTemp, enc);
             callback(null, file);
         }).catch(function (reason) {

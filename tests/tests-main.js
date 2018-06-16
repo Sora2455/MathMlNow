@@ -1,4 +1,7 @@
 const tape = require('tape');
+const gulp = require('gulp');
+const rename = require('gulp-rename');
+const fs = require("fs");
 const mmlN = require("../app.js");
 
 tape('Basic test: check MathMlNow with Euler\'s identity', function (t) {
@@ -26,7 +29,6 @@ tape('Basic test: check MathMlNow with Euler\'s identity', function (t) {
 
     mmlN.MathMLNow(tex, {
         formatName: "TeX",
-        minify: false,
         fontSize: 30
     }).then(result => {
         t.equal(result, expectedOutput);
@@ -70,7 +72,6 @@ tape('Basic test: check MathMlNow with the Quadratic formula', function (t) {
 
     mmlN.MathMLNow(tex, {
         formatName: "TeX",
-        minify: false,
         fontSize: 18
     }).then(result => {
         t.equal(result, expectedOutput);
@@ -124,7 +125,6 @@ tape('Basic test: check MathMlNow with the Integral of the secant function', fun
 
     mmlN.MathMLNow(tex, {
         formatName: "TeX",
-        minify: false,
         fontSize: 16,
         verticalMarginPercent: 20
     }).then(result => {
@@ -230,7 +230,6 @@ tape('Fallback test: check MathMlNow with Euler\'s identity', function (t) {
 
     mmlN.MathMLNow(tex, {
         formatName: "TeX",
-        minify: false,
         imageFolder: "/img/",
         fontSize: 30
     }).then(result => {
@@ -247,7 +246,6 @@ tape('Fallback test: check MathMlNow with the Quadratic formula', function (t) {
     
     mmlN.MathMLNow(tex, {
         formatName: "TeX",
-        minify: false,
         imageFolder: "/img/",
         fontSize: 18
     }).then(result => {
@@ -264,7 +262,6 @@ tape('Fallback test: check MathMlNow with the Integral of the secant function', 
 
     mmlN.MathMLNow(tex, {
         formatName: "TeX",
-        minify: false,
         imageFolder: "/img/",
         fontSize: 16,
         verticalMarginPercent: 20
@@ -272,5 +269,40 @@ tape('Fallback test: check MathMlNow with the Integral of the secant function', 
         t.equal(result, expectedSecantOutput);
     }).catch(error => {
         t.fail(error);
+    });
+});
+
+
+gulp.task('mathReplace', () => {
+    const replacer = new mmlN.MathMlReplacer({
+        formatName: "TeX",
+        imageFolder: "/img/",
+    });
+
+    return gulp.src("**/*.pre.html")
+        .pipe(replacer)
+        .pipe(rename(function (opt) {
+            opt.basename = opt.basename.replace('.pre', '');
+            return opt;
+        }))
+        .pipe(gulp.dest(function (file) {
+            return file.base;
+        }));
+});
+const expectedPath = "example.html";
+const actualPath = "./tests/example2.html";
+tape('Test page conversion', function (t) {
+    t.plan(1);
+
+    gulp.start('mathReplace', () => {
+        if (!fs.existsSync(expectedPath) || !fs.existsSync(actualPath)) {
+            t.fail("Files to compare do not exist.");
+        } else {
+            //Remove whitespace before comparing (spacing isn't important)
+            const expected = fs.readFileSync(expectedPath).toString().replace(/\s+/g, '');
+            const actual = fs.readFileSync(actualPath).toString().replace(/\s+/g, '');
+
+            t.equal(actual, expected);
+        }
     });
 });

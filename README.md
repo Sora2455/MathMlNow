@@ -20,19 +20,16 @@ The file provided is called `MathMLNow`. To generate the MathMLNow used in the e
 //Remember to escape '\' characters!
 MathMLNow("x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}", {
     formatName: "TeX",
-    minify: false,
     imageFolder: "/img/",
     fontSize: 18
 }).then((result) => console.log("Quadratic formula:\n" + result));
 MathMLNow("e^{i\\pi}+1=0", {
     formatName: "TeX",
-    minify: false,
     imageFolder: "/img/",
     fontSize: 30
 }).then((result) => console.log("Euler's identity:\n" + result));
 MathMLNow("\\int_0^{\\pi/6}\\sec\\left(y\\right)\\operatorname dy=\\ln\\left(\\sqrt3i^{64}\\right)", {
     formatName: "TeX",
-    minify: false,
     imageFolder: "/img/",
     fontSize: 16,
     verticalMarginPercent: 20

@@ -14,10 +14,6 @@
      */
     fileName?: string;
     /**
-     * Set to true to strip whitespace from the generated HTML/SVG/MathML
-     */
-    minify?: boolean;
-    /**
      * Use to set the effective font-size (in pixels) of the maths expression (defaults to 18)
      */
     fontSize?: number;
@@ -252,9 +248,45 @@ export class MathMlReplacer extends stream.Transform {
      * @param callback The function to call when we are done
      */
     private rewriteFile(file: File, data: string, enc: string, callback: (err?: any, val?: File) => void): void {
-        this.replaceAsync(data, /\$\$([^]+?)\$\$/gm, (match, p1: string) => {
-            return MathMLNow(p1, this.options);
+        //First, replace the ones with all four properties, and then down from there
+        this.replaceAsync(data, /\$\$(.+?)\|\|(\d+)\|\|(\d+)\|\|(\d+)\|\|(\w+)\$\$/g,
+            (match, math: string, fontSize: string, vMargin: string, hMargin: string, fontColor: string) => {
+                const indiviualOptions = Object.create(this.options) as MathMLNowOptions;
+                indiviualOptions.fontSize = Number(fontSize);
+                indiviualOptions.verticalMarginPercent = Number(vMargin);
+                indiviualOptions.horizontalMarginPercent = Number(hMargin);
+                indiviualOptions.fontColor = fontColor;
+                return MathMLNow(math, indiviualOptions);
+        }).then(data => {
+            return this.replaceAsync(data, /\$\$(.+?)\|\|(\d+)\|\|(\d+)\|\|(\d+)\$\$/g,
+                (match, math: string, fontSize: string, vMargin: string, hMargin: string) => {
+                    const indiviualOptions = Object.create(this.options) as MathMLNowOptions;
+                    indiviualOptions.fontSize = Number(fontSize);
+                    indiviualOptions.verticalMarginPercent = Number(vMargin);
+                    indiviualOptions.horizontalMarginPercent = Number(hMargin);
+                    return MathMLNow(math, indiviualOptions);
+            });
+        }).then(data => {
+            return this.replaceAsync(data, /\$\$(.+?)\|\|(\d+)\|\|(\d+)\$\$/g,
+                (match, math: string, fontSize: string, vMargin: string) => {
+                    const indiviualOptions = Object.create(this.options) as MathMLNowOptions;
+                    indiviualOptions.fontSize = Number(fontSize);
+                    indiviualOptions.verticalMarginPercent = Number(vMargin);
+                    return MathMLNow(math, indiviualOptions);
+            });
+        }).then(data => {
+            return this.replaceAsync(data, /\$\$(.+?)\|\|(\d+)\$\$/g,
+                (match, math: string, fontSize: string) => {
+                    const indiviualOptions = Object.create(this.options) as MathMLNowOptions;
+                    indiviualOptions.fontSize = Number(fontSize);
+                    return MathMLNow(math, indiviualOptions);
+            });
+        }).then(data => {
+            return this.replaceAsync(data, /\$\$(.+?)\$\$/g, (match, math: string) => {
+                return MathMLNow(math, this.options);
+            });
         }).then(processedTemp => {
+            //All done! Write to the file now!
             file.contents = new Buffer(processedTemp, enc);
             callback(null, file);
         }).catch(reason => {

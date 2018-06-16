@@ -35,11 +35,10 @@
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
     <Content Include="example.html" />
-    <Content Include="example2.pre.html">
-      <SubType>Code</SubType>
-    </Content>
     <Content Include="package.json" />
     <Content Include="README.md" />
+    <Content Include="tests\example2.html" />
+    <Content Include="tests\example2.pre.html" />
     <Content Include="tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
