@@ -53,32 +53,38 @@ svg image.mml-i {
 }
 ```
 
+(Thanks to [CSS-Tricks](https://css-tricks.com/a-complete-guide-to-svg-fallbacks/) for sharing this nugget of wisdom.)
+
 If you wish to replace inline math instances in a large file (say, a HTML page), then you can pipe it as a [vinyl](https://github.com/gulpjs/vinyl) stream:
 
 ```JavaScript
-	const gulp = require('gulp');
-	const rename = require('gulp-rename');
-	const mmlN = require("math-ml-now");
+const gulp = require('gulp');
+const rename = require('gulp-rename');
+const mmlN = require("math-ml-now");
 
-	gulp.task('mathReplace', () => {
-		const replacer = new mmlN.MathMlReplacer({
-			formatName: "TeX",
-			imageFolder: "/img/",
-		});
-
-		return gulp.src("**/*.pre.html")
-			.pipe(replacer)
-			.pipe(rename(function (opt) {
-				opt.basename = opt.basename.replace('.pre', '');
-				return opt;
-			}))
-			.pipe(gulp.dest(function (file) {
-				return file.base;
-			}));
+gulp.task('mathReplace', () => {
+	const replacer = new mmlN.MathMlReplacer({
+		formatName: "TeX",
+		imageFolder: "/img/",
 	});
+
+	return gulp.src("**/*.pre.html")
+		.pipe(replacer)
+		.pipe(rename(function (opt) {
+			opt.basename = opt.basename.replace('.pre', '');
+			return opt;
+		}))
+		.pipe(gulp.dest(function (file) {
+			return file.base;
+		}));
+});
 ```
 
-(Thanks to [CSS-Tricks](https://css-tricks.com/a-complete-guide-to-svg-fallbacks/) for sharing this nugget of wisdom.)
+This will replace any instance of Math inbetween two "$$" strings, with font-size, vertical margin percent, horizontal margin percent, and font-color all settable in optional paramaters (in that order) provided after the math string with "||" seperators.
+
+For example, if you wanted the Euler's identity result from up above, you would place "$$e^{i\pi}+1=0||30$$" (math string = "e^{i\pi}+1=0", font-size = 30) whereever you wanted that math to appear.
+
+The Integral of the secant function from up above would be expressed as "$$\int_0^{\pi/6}\sec\left(y\right)\operatorname dy=\ln\left(\sqrt3i^{64}\right)||16||20$$" (math string = "\int_0^{\pi/6}\sec\left(y\right)\operatorname dy=\ln\left(\sqrt3i^{64}\right)", font-size = 16, vertical margin percent = 20).
 
 ## Documentation
 
