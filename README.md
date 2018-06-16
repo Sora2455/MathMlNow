@@ -56,11 +56,26 @@ svg image.mml-i {
 If you wish to replace inline math instances in a large file (say, a HTML page), then you can pipe it as a [vinyl](https://github.com/gulpjs/vinyl) stream:
 
 ```JavaScript
-	var mathMlNowReplacer = new MathMlReplacer(options);
+	const gulp = require('gulp');
+	const rename = require('gulp-rename');
+	const mmlN = require("math-ml-now");
 
-	gulp.src(['src/**/*.html'])
-	  .pipe(mathMlNowReplacer)
-	  .pipe(gulp.dest('dist'));
+	gulp.task('mathReplace', () => {
+		const replacer = new mmlN.MathMlReplacer({
+			formatName: "TeX",
+			imageFolder: "/img/",
+		});
+
+		return gulp.src("**/*.pre.html")
+			.pipe(replacer)
+			.pipe(rename(function (opt) {
+				opt.basename = opt.basename.replace('.pre', '');
+				return opt;
+			}))
+			.pipe(gulp.dest(function (file) {
+				return file.base;
+			}));
+	});
 ```
 
 (Thanks to [CSS-Tricks](https://css-tricks.com/a-complete-guide-to-svg-fallbacks/) for sharing this nugget of wisdom.)
