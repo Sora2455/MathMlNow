@@ -45,5 +45,15 @@
     "gulp": "^3.9.1",
     "gulp-rename": "^1.4.0",
     "tape": "^4.9.1"
-  }
+  },
+  "files": [
+    "app.js",
+    "app.js.map",
+    "app.d.ts",
+    "LICENSE",
+    "package.json",
+    "package-lock.json",
+    "README.md",
+    "/tests"
+  ]
 }
