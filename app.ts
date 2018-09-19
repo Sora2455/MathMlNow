@@ -144,7 +144,7 @@ export function MathMLNow(mathString: string, options: MathMLNowOptions) : Promi
 
             let basePath = __dirname;
 
-            if (basePath.indexOf("node_modules") > -1) {
+            if (basePath.includes("node_modules")) {
                 //If we're being called as a node_module, our actuall base path is two folders up
                 basePath = path.join(basePath, "../../");
             }
