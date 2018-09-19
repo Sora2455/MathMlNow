@@ -1,8 +1,11 @@
 "use strict";
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -14,6 +17,7 @@ var mjAPI = require("mathjax-node-sre");
 var convertSvgToPng = require("convert-svg-to-png");
 var hash = require("string-hash");
 var fs = require("fs");
+var path = require("path");
 var stream = require("stream");
 mjAPI.config({
     MathJax: {
@@ -68,7 +72,6 @@ function MathMLNow(mathString, options) {
             options.fontSize / 18);
         var horizontalMargin = Math.round(width * (options.horizontalMarginPercent / 100));
         var widthWithMargin = width + horizontalMargin * 2;
-        ;
         svg.setAttribute("height", height.toString());
         svg.setAttribute("width", width.toString());
         svg.removeAttribute("style");
@@ -106,12 +109,16 @@ function MathMLNow(mathString, options) {
         parentSvg.appendChild(switchElem);
         parentSvg.setAttribute("height", heightWithMargin.toString());
         parentSvg.setAttribute("width", widthWithMargin.toString());
-        var resultString;
         parentSvg.setAttribute("aria-label", data.speakText);
         if (options.imageFolder) {
             //Same as above, plus:
             //For the browsers that don't support SVG, we'll render a PNG instead
             var pngFilePath_1 = options.imageFolder + (options.fileName || hash(mathString).toString()) + ".png";
+            var basePath_1 = __dirname;
+            if (basePath_1.includes("node_modules")) {
+                //If we're being called as a node_module, our actuall base path is two folders up
+                basePath_1 = path.join(basePath_1, "../../");
+            }
             var svgBuffer = Buffer.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                 svg.outerHTML, "utf8");
             //For the browsers that don't support SVG, we'll render a PNG instead
@@ -120,7 +127,7 @@ function MathMLNow(mathString, options) {
                 scale: 3
             }).then(function (png) {
                 return new Promise(function (resolve, reject) {
-                    fs.writeFile(__dirname + pngFilePath_1, png, function (error) {
+                    fs.writeFile(path.join(basePath_1, pngFilePath_1), png, function (error) {
                         if (error)
                             reject(error);
                         //Hiding the SVG text in unsuporting browsers requires an <a> tag wrapped around it's contents

@@ -97,7 +97,7 @@ export function MathMLNow(mathString: string, options: MathMLNowOptions) : Promi
         const width = Math.ceil(Number.parseFloat(data.width) * 10.5 *
             options.fontSize / 18);
         const horizontalMargin = Math.round(width * (options.horizontalMarginPercent / 100));
-        const widthWithMargin = width + horizontalMargin * 2;;
+        const widthWithMargin = width + horizontalMargin * 2;
         svg.setAttribute("height", height.toString());
         svg.setAttribute("width", width.toString());
         svg.removeAttribute("style");
