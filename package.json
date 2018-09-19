@@ -1,6 +1,6 @@
 {
   "name": "math-ml-now",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "A Node.JS package that will render maths equations server-side in a way that will allow them to be displayed as best as possible in all browsers.",
   "main": "app.js",
   "author": {
