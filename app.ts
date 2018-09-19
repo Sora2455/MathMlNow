@@ -41,6 +41,7 @@ import * as mjAPI from "mathjax-node-sre";
 import * as convertSvgToPng from "convert-svg-to-png";
 const hash = require("string-hash");
 import * as fs from "fs";
+import * as path from "path";
 import stream = require("stream");
 import File = require("vinyl");
 
@@ -134,14 +135,19 @@ export function MathMLNow(mathString: string, options: MathMLNowOptions) : Promi
         parentSvg.setAttribute("height", heightWithMargin.toString());
         parentSvg.setAttribute("width", widthWithMargin.toString());
 
-        let resultString: string;
-
         parentSvg.setAttribute("aria-label", data.speakText);
 
         if (options.imageFolder) {
             //Same as above, plus:
             //For the browsers that don't support SVG, we'll render a PNG instead
             const pngFilePath = options.imageFolder + (options.fileName || hash(mathString).toString()) + ".png";
+
+            let basePath = __dirname;
+
+            if (basePath.indexOf("node_modules") > -1) {
+                //If we're being called as a node_module, our actuall base path is two folders up
+                basePath = path.join(basePath, "../../");
+            }
 
             const svgBuffer = Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>` +
                 svg.outerHTML, "utf8");
@@ -151,7 +157,7 @@ export function MathMLNow(mathString: string, options: MathMLNowOptions) : Promi
                 scale: 3
             }).then(png => {
                 return new Promise<string>((resolve, reject) => {
-                    fs.writeFile(__dirname + pngFilePath, png, (error) => {
+                    fs.writeFile(path.join(basePath, pngFilePath), png, (error) => {
                         if (error) reject(error);
 
                         //Hiding the SVG text in unsuporting browsers requires an <a> tag wrapped around it's contents
