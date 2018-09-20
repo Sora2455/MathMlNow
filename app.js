@@ -109,7 +109,7 @@ function MathMLNow(mathString, options) {
         parentSvg.appendChild(switchElem);
         parentSvg.setAttribute("height", heightWithMargin.toString());
         parentSvg.setAttribute("width", widthWithMargin.toString());
-        parentSvg.setAttribute("aria-label", data.speakText);
+        parentSvg.setAttribute("role", "none");
         if (options.imageFolder) {
             //Same as above, plus:
             //For the browsers that don't support SVG, we'll render a PNG instead
@@ -278,6 +278,9 @@ var MathMlReplacer = /** @class */ (function (_super) {
             callback(chunks.join(''));
         });
     };
+    /**
+     * @inheritdoc
+     */
     MathMlReplacer.prototype._transform = function (file, enc, callback) {
         var _this = this;
         if (file.isNull()) {

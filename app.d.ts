@@ -1,5 +1,4 @@
 /// <reference types="node" />
-/// <reference types="vinyl" />
 export interface MathMLNowOptions {
     /**
      * The format of the math input
@@ -62,7 +61,7 @@ export declare class MathMlReplacer extends stream.Transform {
      * @param re The regex to do matches with
      * @param callback The async function to apply to the regex matches
      */
-    private replaceAsync(str, re, callback);
+    private replaceAsync;
     /**
      * Apply MathMLNow to a vinyl file
      * @param file The file to assign our result to
@@ -70,13 +69,16 @@ export declare class MathMlReplacer extends stream.Transform {
      * @param enc The file encoding the file was initially in
      * @param callback The function to call when we are done
      */
-    private rewriteFile(file, data, enc, callback);
+    private rewriteFile;
     /**
      * Reads a stream into memory so that we can run Regex on it
      * @param stream The stream to read from
      * @param enc The encoding of the stream
      * @param callback A callback function to run when we are done
      */
-    private streamToString(stream, enc, callback);
+    private streamToString;
+    /**
+     * @inheritdoc
+     */
     _transform(file: File, enc: string, callback: (err?: any, val?: File) => void): void;
 }

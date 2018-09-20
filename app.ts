@@ -135,7 +135,7 @@ export function MathMLNow(mathString: string, options: MathMLNowOptions) : Promi
         parentSvg.setAttribute("height", heightWithMargin.toString());
         parentSvg.setAttribute("width", widthWithMargin.toString());
 
-        parentSvg.setAttribute("aria-label", data.speakText);
+        parentSvg.setAttribute("role", "none");
 
         if (options.imageFolder) {
             //Same as above, plus:
@@ -316,7 +316,9 @@ export class MathMlReplacer extends stream.Transform {
             callback(chunks.join(''));
         });
     }
-
+    /**
+     * @inheritdoc
+     */
     public _transform(file: File, enc: string, callback: (err?: any, val?: File) => void): void {
         if (file.isNull()) {
             callback(null, file);
