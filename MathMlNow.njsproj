@@ -34,7 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
-    <Content Include="example.html" />
+    <Content Include="index.html" />
     <Content Include="package.json" />
     <Content Include="README.md" />
     <Content Include="tests\example2.html" />
