@@ -8,7 +8,7 @@ But because most browsers do _not_ support MathML, fallback content is necessary
 
 MathMLNow is a Node package that produces a series of HTML tags that show MathML if available, gracefully degrading to an SVG image, and then to a PNG image if even SVG is not supported.
 
-To see an example of this technique in action, visit [this example page](https://cdn.rawgit.com/Sora2455/MathMlNow/f785740a/example.html).
+To see an example of this technique in action, visit [this example page](https://sora2455.github.io/MathMlNow/).
 
 ## Getting started
 
