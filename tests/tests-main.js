@@ -289,7 +289,7 @@ gulp.task('mathReplace', () => {
             return file.base;
         }));
 });
-const expectedPath = "example.html";
+const expectedPath = "index.html";
 const actualPath = "./tests/example2.html";
 tape('Test page conversion', function (t) {
     t.plan(1);
@@ -299,7 +299,9 @@ tape('Test page conversion', function (t) {
             t.fail("Files to compare do not exist.");
         } else {
             //Remove whitespace before comparing (spacing isn't important)
-            const expected = fs.readFileSync(expectedPath).toString().replace(/\s+/g, '');
+            const expected = fs.readFileSync(expectedPath).toString().replace(/\s+/g, '')
+                //The index file has a dot in front to make the file path make sense, but our output won't
+                .replace(/\.\/img\//g, "/img/");
             const actual = fs.readFileSync(actualPath).toString().replace(/\s+/g, '');
 
             t.equal(actual, expected);
