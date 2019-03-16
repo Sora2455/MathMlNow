@@ -294,7 +294,7 @@ const actualPath = "./tests/example2.html";
 tape('Test page conversion', function (t) {
     t.plan(1);
 
-    gulp.start('mathReplace', () => {
+    gulp.series('mathReplace', () => {
         if (!fs.existsSync(expectedPath) || !fs.existsSync(actualPath)) {
             t.fail("Files to compare do not exist.");
         } else {
@@ -306,5 +306,5 @@ tape('Test page conversion', function (t) {
 
             t.equal(actual, expected);
         }
-    });
+    })();
 });

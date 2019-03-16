@@ -42,7 +42,7 @@
     "@types/node": "6.0.96",
     "@types/string-hash": "1.1.1",
     "@types/vinyl": "^2.0.2",
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.0",
     "gulp-rename": "^1.4.0",
     "tape": "^4.10.1"
   },
