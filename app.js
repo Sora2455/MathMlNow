@@ -109,7 +109,7 @@ function MathMLNow(mathString, options) {
         parentSvg.appendChild(switchElem);
         parentSvg.setAttribute("height", heightWithMargin.toString());
         parentSvg.setAttribute("width", widthWithMargin.toString());
-        parentSvg.setAttribute("role", "none");
+        parentSvg.setAttribute("role", "presentation");
         if (options.imageFolder) {
             //Same as above, plus:
             //For the browsers that don't support SVG, we'll render a PNG instead
