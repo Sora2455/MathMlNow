@@ -96,7 +96,7 @@ The Integral of the secant function from up above would be expressed as
 
 ## Using with [MathJax](https://www.mathjax.org/)
 
-If you want to use this as a fallback and MathJax when possible, add this script to your page after where you included the MathJax script:
+If you want to use this as a fallback and MathJax when possible, add this script to your page after where you included the MathJax script (IE9 and up):
 
 ```JavaScript
 MathJax.Hub.Register.StartupHook("End Extensions", function(){
