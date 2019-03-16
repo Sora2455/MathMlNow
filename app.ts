@@ -135,7 +135,7 @@ export function MathMLNow(mathString: string, options: MathMLNowOptions) : Promi
         parentSvg.setAttribute("height", heightWithMargin.toString());
         parentSvg.setAttribute("width", widthWithMargin.toString());
 
-        parentSvg.setAttribute("role", "none");
+        parentSvg.setAttribute("role", "presentation");
 
         if (options.imageFolder) {
             //Same as above, plus:
