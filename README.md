@@ -94,6 +94,25 @@ The Integral of the secant function from up above would be expressed as
 
 (math string = "\int_0^{\pi/6}\sec\left(y\right)\operatorname dy=\ln\left(\sqrt3i^{64}\right)", font-size = 16, vertical margin percent = 20).
 
+## Using with [MathJax](https://www.mathjax.org/)
+
+If you want to use this as a fallback and MathJax when possible, add this script to your page after where you included the MathJax script:
+
+```JavaScript
+MathJax.Hub.Register.StartupHook("End Extensions", function(){
+	var mathElements = document.querySelectorAll("foreignObject[requiredExtensions='http://www.w3.org/1998/Math/MathML'] math");
+	var getParentSvg = Element.prototype.closest ?
+		function(el) {return el.closest("svg")} :
+		function(el) {return el.parentNode.parentNode.parentNode.parentNode};
+	for (var i = 0; i < mathElements.length; i++) {
+		var mathElement = mathElements[i];
+		var parentSvg = getParentSvg(mathElement);
+		//Extract the math from the SVG and remove the SVG
+		parentSvg.parentNode.replaceChild(mathElement, parentSvg);
+	}
+});
+```
+
 ## Documentation
 
 `MathMLNow` takes two paramaters - a string representing the maths equation to render (in the same formats [MathJax-node](https://github.com/mathjax/MathJax-node) accepts, as that is what is used internally), and a `MathMLNowOptions` object.
