@@ -1,4 +1,3 @@
-/// <reference types="node" />
 export interface MathMLNowOptions {
     /**
      * The format of the math input

@@ -37,14 +37,14 @@
     "vinyl": "^2.2.0"
   },
   "devDependencies": {
-    "@types/html-minifier": "^3.5.1",
-    "@types/jsdom": "^11.0.4",
-    "@types/node": "^6.0.96",
+    "@types/html-minifier": "^3.5.3",
+    "@types/jsdom": "^11.12.0",
+    "@types/node": "^6.14.7",
     "@types/string-hash": "^1.1.1",
-    "@types/vinyl": "^2.0.2",
-    "gulp": "^4.0.0",
+    "@types/vinyl": "^2.0.3",
+    "gulp": "^4.0.2",
     "gulp-rename": "^1.4.0",
-    "tape": "^4.10.1"
+    "tape": "^4.11.0"
   },
   "files": [
     "app.js",
