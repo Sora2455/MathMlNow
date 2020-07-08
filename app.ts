@@ -293,7 +293,7 @@ export class MathMlReplacer extends stream.Transform {
             });
         }).then(processedTemp => {
             //All done! Write to the file now!
-            file.contents = new Buffer(processedTemp, enc);
+            file.contents = Buffer.from(processedTemp, enc);
             callback(null, file);
         }).catch(reason => {
             //If there was a fail, pass the reason why up the chain

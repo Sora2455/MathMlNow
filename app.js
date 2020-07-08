@@ -256,7 +256,7 @@ var MathMlReplacer = /** @class */ (function (_super) {
             });
         }).then(function (processedTemp) {
             //All done! Write to the file now!
-            file.contents = new Buffer(processedTemp, enc);
+            file.contents = Buffer.from(processedTemp, enc);
             callback(null, file);
         }).catch(function (reason) {
             //If there was a fail, pass the reason why up the chain
