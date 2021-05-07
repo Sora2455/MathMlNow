@@ -4,16 +4,6 @@ export interface MathMLNowOptions {
      */
     formatName: "TeX" | "inline-TeX" | "AsciiMath" | "MathML";
     /**
-     * If you want to support browsers that can't render MathML or SVG (generally IE8 and below)
-     * then include a relative file path to your image folder here (must end in a '/'!). PNG fallbacks
-     * for the SVG files will be saved there.
-     */
-    imageFolder?: string;
-    /**
-     * The filename to save any image files under (defaults to a hash of the math input)
-     */
-    fileName?: string;
-    /**
      * Use to set the effective font-size (in pixels) of the maths expression (defaults to 18)
      */
     fontSize?: number;
@@ -39,8 +29,9 @@ import File = require("vinyl");
  * maths equation in a way understood by all browsers
  * @param mathString The string representation of the maths equation you wish to display
  * @param options The MathMLNowOptions object that will control the behaviour of the rendered equation
+ * @param id The ID number to use (should be incremented if called multiple times on the same page for unique ids)
  */
-export declare function MathMLNow(mathString: string, options: MathMLNowOptions): Promise<string>;
+ export function MathMLNow(mathString: string, options: MathMLNowOptions, id?: number) : Promise<string>;
 /**
  * A Gulp-style replacer function that will rewrite large chunks of text (like a HTML page),
  * replacing instances of $$[Math string]$$ with the corresponding MathMLNow
@@ -79,5 +70,5 @@ export declare class MathMlReplacer extends stream.Transform {
     /**
      * @inheritdoc
      */
-    _transform(file: File, enc: string, callback: (err?: any, val?: File) => void): void;
+    _transform(file: File, enc: BufferEncoding, callback: (err?: any, val?: File) => void): void;
 }

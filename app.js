@@ -3,21 +3,20 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
+exports.MathMlReplacer = exports.MathMLNow = void 0;
 var mjAPI = require("mathjax-node-sre");
-var convertSvgToPng = require("convert-svg-to-png");
-var hash = require("string-hash");
-var fs = require("fs");
-var path = require("path");
 var stream = require("stream");
 mjAPI.config({
     MathJax: {
@@ -42,8 +41,9 @@ function replaceWithHTMLEntities(rawStr) {
  * maths equation in a way understood by all browsers
  * @param mathString The string representation of the maths equation you wish to display
  * @param options The MathMLNowOptions object that will control the behaviour of the rendered equation
+ * @param id The ID number to use (should be incremented if called multiple times on the same page for unique ids)
  */
-function MathMLNow(mathString, options) {
+function MathMLNow(mathString, options, id) {
     //Default font size is 18
     if (!options.fontSize)
         options.fontSize = 18;
@@ -53,6 +53,8 @@ function MathMLNow(mathString, options) {
     //Default horizontal whitespace margin is 0%
     if (!options.horizontalMarginPercent)
         options.horizontalMarginPercent = 0;
+    //Default id is 1
+    id = id || 1;
     return mjAPI.typeset({
         math: mathString,
         format: options.formatName,
@@ -83,6 +85,10 @@ function MathMLNow(mathString, options) {
             svg.setAttribute("x", horizontalMargin.toString());
         if (!!verticalMargin)
             svg.setAttribute("y", verticalMargin.toString());
+        //Set the ID for the SVG label
+        var titleId = "MathJax-SVG-" + id + "-Title";
+        svg.setAttribute("aria-labelledby", titleId);
+        svg.querySelector("title").id = titleId;
         //Scaling and coloring the MathML requires a <mstyle> element
         var mstyle = mml.ownerDocument.createElementNS("http://www.w3.org/1998/Math/MathML", "mstyle");
         mstyle.setAttribute("mathsize", (Math.floor(options.fontSize)).toString() + "pt");
@@ -110,48 +116,6 @@ function MathMLNow(mathString, options) {
         parentSvg.setAttribute("height", heightWithMargin.toString());
         parentSvg.setAttribute("width", widthWithMargin.toString());
         parentSvg.setAttribute("role", "presentation");
-        if (options.imageFolder) {
-            //Same as above, plus:
-            //For the browsers that don't support SVG, we'll render a PNG instead
-            var pngFilePath_1 = options.imageFolder + (options.fileName || hash(mathString).toString()) + ".png";
-            var basePath_1 = __dirname;
-            if (basePath_1.includes("node_modules")) {
-                //If we're being called as a node_module, our actuall base path is two folders up
-                basePath_1 = path.join(basePath_1, "../../");
-            }
-            var svgBuffer = Buffer.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                svg.outerHTML, "utf8");
-            //For the browsers that don't support SVG, we'll render a PNG instead
-            return convertSvgToPng.convert(svgBuffer, {
-                //Make the image three times as large to help with quality
-                scale: 3
-            }).then(function (png) {
-                return new Promise(function (resolve, reject) {
-                    fs.writeFile(path.join(basePath_1, pngFilePath_1), png, function (error) {
-                        if (error)
-                            reject(error);
-                        //Hiding the SVG text in unsuporting browsers requires an <a> tag wrapped around it's contents
-                        var svga = mml.ownerDocument.createElementNS("http://www.w3.org/2000/svg", "a");
-                        svga.classList.add("mmln-f");
-                        //Move the math nodes into the style node
-                        var parentSvgChildNodes = Array.from(parentSvg.childNodes);
-                        parentSvgChildNodes.forEach(function (value) {
-                            svga.appendChild(value);
-                        });
-                        parentSvg.appendChild(svga);
-                        var img = mml.ownerDocument.createElementNS("http://www.w3.org/2000/svg", "image");
-                        img.setAttribute("src", pngFilePath_1);
-                        img.setAttribute("height", svg.getAttribute("height"));
-                        img.setAttribute("width", svg.getAttribute("width"));
-                        img.setAttribute("alt", data.speakText);
-                        img.setAttribute("xlink:href", "");
-                        img.classList.add("mml-i");
-                        parentSvg.appendChild(img);
-                        resolve(replaceWithHTMLEntities(parentSvg.outerHTML));
-                    });
-                });
-            });
-        }
         return replaceWithHTMLEntities(parentSvg.outerHTML);
     });
 }
@@ -169,6 +133,7 @@ var MathMlReplacer = /** @class */ (function (_super) {
      */
     function MathMlReplacer(options) {
         var _this = _super.call(this, { objectMode: true }) || this;
+        _this.state = 1;
         _this.options = options || { formatName: "TeX" };
         _this.options.formatName = options.formatName || "TeX";
         return _this;
@@ -191,7 +156,7 @@ var MathMlReplacer = /** @class */ (function (_super) {
                 re.lastIndex = i;
             var m = void 0;
             while (m = re.exec(str)) {
-                var args = m.concat([m.index, m.input]);
+                var args = m.concat([m.index.toString(), m.input]);
                 parts.push(str.slice(i, m.index), callback.apply(null, args));
                 i = re.lastIndex;
                 if (!re.global)
@@ -228,37 +193,37 @@ var MathMlReplacer = /** @class */ (function (_super) {
             indiviualOptions.verticalMarginPercent = Number(vMargin);
             indiviualOptions.horizontalMarginPercent = Number(hMargin);
             indiviualOptions.fontColor = fontColor;
-            return MathMLNow(math, indiviualOptions);
+            return MathMLNow(math, indiviualOptions, _this.state++);
         }).then(function (data) {
             return _this.replaceAsync(data, /\$\$(.+?)\|\|(\d+)\|\|(\d+)\|\|(\d+)\$\$/g, function (match, math, fontSize, vMargin, hMargin) {
                 var indiviualOptions = Object.create(_this.options);
                 indiviualOptions.fontSize = Number(fontSize);
                 indiviualOptions.verticalMarginPercent = Number(vMargin);
                 indiviualOptions.horizontalMarginPercent = Number(hMargin);
-                return MathMLNow(math, indiviualOptions);
+                return MathMLNow(math, indiviualOptions, _this.state++);
             });
         }).then(function (data) {
             return _this.replaceAsync(data, /\$\$(.+?)\|\|(\d+)\|\|(\d+)\$\$/g, function (match, math, fontSize, vMargin) {
                 var indiviualOptions = Object.create(_this.options);
                 indiviualOptions.fontSize = Number(fontSize);
                 indiviualOptions.verticalMarginPercent = Number(vMargin);
-                return MathMLNow(math, indiviualOptions);
+                return MathMLNow(math, indiviualOptions, _this.state++);
             });
         }).then(function (data) {
             return _this.replaceAsync(data, /\$\$(.+?)\|\|(\d+)\$\$/g, function (match, math, fontSize) {
                 var indiviualOptions = Object.create(_this.options);
                 indiviualOptions.fontSize = Number(fontSize);
-                return MathMLNow(math, indiviualOptions);
+                return MathMLNow(math, indiviualOptions, _this.state++);
             });
         }).then(function (data) {
             return _this.replaceAsync(data, /\$\$(.+?)\$\$/g, function (match, math) {
-                return MathMLNow(math, _this.options);
+                return MathMLNow(math, _this.options, _this.state++);
             });
         }).then(function (processedTemp) {
             //All done! Write to the file now!
             file.contents = Buffer.from(processedTemp, enc);
             callback(null, file);
-        }).catch(function (reason) {
+        })["catch"](function (reason) {
             //If there was a fail, pass the reason why up the chain
             callback(reason);
         });
@@ -299,4 +264,3 @@ var MathMlReplacer = /** @class */ (function (_super) {
     return MathMlReplacer;
 }(stream.Transform));
 exports.MathMlReplacer = MathMlReplacer;
-//# sourceMappingURL=app.js.map

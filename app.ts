@@ -4,16 +4,6 @@
      */
     formatName: "TeX" | "inline-TeX" | "AsciiMath" | "MathML";
     /**
-     * If you want to support browsers that can't render MathML or SVG (generally IE8 and below)
-     * then include a relative file path to your image folder here (must end in a '/'!). PNG fallbacks
-     * for the SVG files will be saved there.
-     */
-    imageFolder?: string;
-    /**
-     * The filename to save any image files under (defaults to a hash of the math input)
-     */
-    fileName?: string;
-    /**
      * Use to set the effective font-size (in pixels) of the maths expression (defaults to 18)
      */
     fontSize?: number;
@@ -33,15 +23,7 @@
     horizontalMarginPercent?: number;
 }
 
-interface IConvertSvgToPng {
-    convert(input: string | Buffer, options: any): Promise<Buffer>;
-}
-
 import * as mjAPI from "mathjax-node-sre";
-import * as convertSvgToPng from "convert-svg-to-png";
-const hash = require("string-hash");
-import * as fs from "fs";
-import * as path from "path";
 import stream = require("stream");
 import File = require("vinyl");
 
@@ -70,14 +52,17 @@ function replaceWithHTMLEntities(rawStr: string): string {
  * maths equation in a way understood by all browsers
  * @param mathString The string representation of the maths equation you wish to display
  * @param options The MathMLNowOptions object that will control the behaviour of the rendered equation
+ * @param id The ID number to use (should be incremented if called multiple times on the same page for unique ids)
  */
-export function MathMLNow(mathString: string, options: MathMLNowOptions) : Promise<string> {
+export function MathMLNow(mathString: string, options: MathMLNowOptions, id?: number) : Promise<string> {
     //Default font size is 18
     if (!options.fontSize) options.fontSize = 18;
     //Default vertical whitespace margin is 0%
     if (!options.verticalMarginPercent) options.verticalMarginPercent = 0;
     //Default horizontal whitespace margin is 0%
     if (!options.horizontalMarginPercent) options.horizontalMarginPercent = 0;
+    //Default id is 1
+    id = id || 1;
 
     return mjAPI.typeset({
         math: mathString,
@@ -106,6 +91,10 @@ export function MathMLNow(mathString: string, options: MathMLNowOptions) : Promi
         //Center the SVG
         if (!!horizontalMargin) svg.setAttribute("x", horizontalMargin.toString());
         if (!!verticalMargin) svg.setAttribute("y", verticalMargin.toString());
+        //Set the ID for the SVG label
+        const titleId = `MathJax-SVG-${id}-Title`;
+        svg.setAttribute("aria-labelledby", titleId);
+        svg.querySelector("title").id = titleId;
 
         //Scaling and coloring the MathML requires a <mstyle> element
         const mstyle = mml.ownerDocument.createElementNS("http://www.w3.org/1998/Math/MathML", "mstyle");
@@ -137,54 +126,6 @@ export function MathMLNow(mathString: string, options: MathMLNowOptions) : Promi
 
         parentSvg.setAttribute("role", "presentation");
 
-        if (options.imageFolder) {
-            //Same as above, plus:
-            //For the browsers that don't support SVG, we'll render a PNG instead
-            const pngFilePath = options.imageFolder + (options.fileName || hash(mathString).toString()) + ".png";
-
-            let basePath = __dirname;
-
-            if (basePath.includes("node_modules")) {
-                //If we're being called as a node_module, our actuall base path is two folders up
-                basePath = path.join(basePath, "../../");
-            }
-
-            const svgBuffer = Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>` +
-                svg.outerHTML, "utf8");
-            //For the browsers that don't support SVG, we'll render a PNG instead
-            return (convertSvgToPng as IConvertSvgToPng).convert(svgBuffer, {
-                //Make the image three times as large to help with quality
-                scale: 3
-            }).then(png => {
-                return new Promise<string>((resolve, reject) => {
-                    fs.writeFile(path.join(basePath, pngFilePath), png, (error) => {
-                        if (error) reject(error);
-
-                        //Hiding the SVG text in unsuporting browsers requires an <a> tag wrapped around it's contents
-                        const svga = mml.ownerDocument.createElementNS("http://www.w3.org/2000/svg", "a");
-                        svga.classList.add("mmln-f");
-                        //Move the math nodes into the style node
-                        const parentSvgChildNodes = Array.from(parentSvg.childNodes);
-                        parentSvgChildNodes.forEach((value) => {
-                            svga.appendChild(value);
-                        });
-                        parentSvg.appendChild(svga);
-
-                        const img = mml.ownerDocument.createElementNS("http://www.w3.org/2000/svg", "image");
-                        img.setAttribute("src", pngFilePath);
-                        img.setAttribute("height", svg.getAttribute("height"));
-                        img.setAttribute("width", svg.getAttribute("width"));
-                        img.setAttribute("alt", data.speakText);
-                        img.setAttribute("xlink:href", "");
-                        img.classList.add("mml-i");
-                        parentSvg.appendChild(img);
-
-                        resolve(replaceWithHTMLEntities(parentSvg.outerHTML));
-                    });
-                });
-            });
-        }
-
         return replaceWithHTMLEntities(parentSvg.outerHTML);
     });
 }
@@ -195,6 +136,7 @@ export function MathMLNow(mathString: string, options: MathMLNowOptions) : Promi
  */
 export class MathMlReplacer extends stream.Transform {
     private options: MathMLNowOptions;
+    private state: number = 1;
     /**
      * A Gulp-style replacer function that will rewrite large chunks of text (like a HTML page),
      * replacing instances of $$[Math string]$$ with the corresponding MathML
@@ -223,9 +165,9 @@ export class MathMlReplacer extends stream.Transform {
             //Regex search function - could have many matches
             if (re.global)
                 re.lastIndex = i;
-            let m;
+            let m: RegExpExecArray;
             while (m = re.exec(str)) {
-                var args = m.concat([m.index, m.input]);
+                var args = m.concat([m.index.toString(), m.input]);
                 parts.push(str.slice(i, m.index), callback.apply(null, args));
                 i = re.lastIndex;
                 if (!re.global)
@@ -253,7 +195,7 @@ export class MathMlReplacer extends stream.Transform {
      * @param enc The file encoding the file was initially in
      * @param callback The function to call when we are done
      */
-    private rewriteFile(file: File, data: string, enc: string, callback: (err?: any, val?: File) => void): void {
+    private rewriteFile(file: File, data: string, enc: BufferEncoding, callback: (err?: any, val?: File) => void): void {
         //First, replace the ones with all four properties, and then down from there
         this.replaceAsync(data, /\$\$(.+?)\|\|(\d+)\|\|(\d+)\|\|(\d+)\|\|(\w+)\$\$/g,
             (match, math: string, fontSize: string, vMargin: string, hMargin: string, fontColor: string) => {
@@ -262,7 +204,7 @@ export class MathMlReplacer extends stream.Transform {
                 indiviualOptions.verticalMarginPercent = Number(vMargin);
                 indiviualOptions.horizontalMarginPercent = Number(hMargin);
                 indiviualOptions.fontColor = fontColor;
-                return MathMLNow(math, indiviualOptions);
+                return MathMLNow(math, indiviualOptions, this.state++);
         }).then(data => {
             return this.replaceAsync(data, /\$\$(.+?)\|\|(\d+)\|\|(\d+)\|\|(\d+)\$\$/g,
                 (match, math: string, fontSize: string, vMargin: string, hMargin: string) => {
@@ -270,7 +212,7 @@ export class MathMlReplacer extends stream.Transform {
                     indiviualOptions.fontSize = Number(fontSize);
                     indiviualOptions.verticalMarginPercent = Number(vMargin);
                     indiviualOptions.horizontalMarginPercent = Number(hMargin);
-                    return MathMLNow(math, indiviualOptions);
+                    return MathMLNow(math, indiviualOptions, this.state++);
             });
         }).then(data => {
             return this.replaceAsync(data, /\$\$(.+?)\|\|(\d+)\|\|(\d+)\$\$/g,
@@ -278,18 +220,18 @@ export class MathMlReplacer extends stream.Transform {
                     const indiviualOptions = Object.create(this.options) as MathMLNowOptions;
                     indiviualOptions.fontSize = Number(fontSize);
                     indiviualOptions.verticalMarginPercent = Number(vMargin);
-                    return MathMLNow(math, indiviualOptions);
+                    return MathMLNow(math, indiviualOptions, this.state++);
             });
         }).then(data => {
             return this.replaceAsync(data, /\$\$(.+?)\|\|(\d+)\$\$/g,
                 (match, math: string, fontSize: string) => {
                     const indiviualOptions = Object.create(this.options) as MathMLNowOptions;
                     indiviualOptions.fontSize = Number(fontSize);
-                    return MathMLNow(math, indiviualOptions);
+                    return MathMLNow(math, indiviualOptions, this.state++);
             });
         }).then(data => {
             return this.replaceAsync(data, /\$\$(.+?)\$\$/g, (match, math: string) => {
-                return MathMLNow(math, this.options);
+                return MathMLNow(math, this.options, this.state++);
             });
         }).then(processedTemp => {
             //All done! Write to the file now!
@@ -319,7 +261,7 @@ export class MathMlReplacer extends stream.Transform {
     /**
      * @inheritdoc
      */
-    public _transform(file: File, enc: string, callback: (err?: any, val?: File) => void): void {
+    public _transform(file: File, enc: BufferEncoding, callback: (err?: any, val?: File) => void): void {
         if (file.isNull()) {
             callback(null, file);
         }
